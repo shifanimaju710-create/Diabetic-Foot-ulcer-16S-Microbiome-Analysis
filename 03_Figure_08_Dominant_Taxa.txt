@@ -1,0 +1,408 @@
+head(genus_sum)
+dominant_taxa <- genus_sum %>%
+  filter(
+    Genus != "Unclassified",
+    !is.na(Genus)
+  ) %>%
+  group_by(Genus) %>%
+  summarise(
+    Total = sum(Relative),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Total)) %>%
+  slice_head(n = 10) %>%
+  pull(Genus)
+dominant_taxa
+panelB <- genus_sum %>%
+  mutate(
+    Taxa = ifelse(
+      Genus %in% dominant_taxa,
+      Genus,
+      "Other taxa"
+    )
+  ) %>%
+  group_by(Sample, Taxa) %>%
+  summarise(
+    Relative = sum(Relative),
+    .groups = "drop"
+  )
+panelB$Sample <- factor(
+  panelB$Sample,
+  levels = c(
+    "DF_04",
+    "DF_05",
+    "DF_01",
+    "DF_03",
+    "DF_02"
+  )
+)
+taxa_names <- unique(panelB$Taxa)
+taxa_palette <- c(
+  "#E41A1C",
+  "#377EB8",
+  "#4DAF4A",
+  "#984EA3",
+  "#FF7F00",
+  "#A65628",
+  "#F781BF",
+  "#999999",
+  "#66C2A5",
+  "#80A6D2",
+  "#FC8D62"
+)
+taxa_cols <- setNames(
+  taxa_palette[seq_along(taxa_names)],
+  taxa_names
+)
+p8B <- ggplot(
+  panelB,
+  aes(
+    x = Sample,
+    y = Relative,
+    fill = Taxa
+  )
+)
+p8B <- p8B + geom_col(
+  width = 0.82,
+  colour = "white",
+  linewidth = 0.25
+)
+p8B <- p8B + scale_fill_manual(
+  values = taxa_cols,
+  name = "Taxa"
+)
+p8B <- p8B + scale_y_continuous(
+  limits = c(0, 100),
+  breaks = seq(0, 100, 20),
+  labels = function(x) paste0(x, "%"),
+  expand = c(0, 0)
+)
+p8B <- p8B + labs(
+  title = "Relative abundance of dominant taxa among DFU 16S samples",
+  x = "Sample",
+  y = "Relative abundance (%)"
+)
+p8B <- p8B + theme_classic(base_size = 8) +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 9
+    ),
+    axis.title = element_text(size = 8),
+    axis.text = element_text(
+      size = 7,
+      colour = "black"
+    ),
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    ),
+    legend.title = element_text(
+      face = "bold",
+      size = 7
+    ),
+    legend.text = element_text(size = 6),
+    legend.key.height = grid::unit(0.28, "cm")
+  )
+p8B
+panelC <- panelB
+panelC$Group <- ifelse(
+  panelC$Sample %in% c(
+    "DF_04",
+    "DF_01",
+    "DF_03"
+  ),
+  "Aerobe/skin dominant",
+  "Enteric/anaerobe rich"
+)
+panelC_mean <- panelC %>%
+  group_by(Group, Taxa) %>%
+  summarise(
+    MeanRelative = mean(Relative),
+    .groups = "drop"
+  )
+panelC_mean %>%
+  group_by(Group) %>%
+  summarise(Total = sum(MeanRelative))
+panelC_mean$Group <- factor(
+  panelC_mean$Group,
+  levels = c(
+    "Aerobe/skin dominant",
+    "Enteric/anaerobe rich"
+  )
+)
+p8C <- ggplot(
+  panelC_mean,
+  aes(
+    x = Group,
+    y = MeanRelative,
+    fill = Taxa
+  )
+)
+p8C <- p8C + geom_col(
+  width = 0.80,
+  colour = "white",
+  linewidth = 0.25
+)
+p8C <- p8C + scale_fill_manual(
+  values = taxa_cols,
+  guide = "none"
+)
+p8C <- p8C + scale_y_continuous(
+  limits = c(0, 100),
+  breaks = seq(0, 100, 20),
+  labels = function(x) paste0(x, "%"),
+  expand = c(0, 0)
+)
+p8C <- p8C + labs(
+  title = "Relative abundance between provisional DFU groups",
+  x = NULL,
+  y = "Relative abundance (%)"
+)
+p8C <- p8C + theme_classic(base_size = 8) +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 9
+    ),
+    axis.title.y = element_text(size = 8),
+    axis.text.y = element_text(
+      size = 7,
+      colour = "black"
+    ),
+    axis.text.x = element_text(
+      size = 7,
+      colour = "black",
+      angle = 10,
+      hjust = 0.5
+    )
+  )
+p8C
+install.packages(c("igraph", "ggraph"))
+library(igraph)
+library(ggraph)
+Genus != "Unclassified",
+!is.na(Genus)
+) %>%
+  group_by(Genus) %>%
+  summarise(
+    Total = sum(Relative),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Total)) %>%
+  slice_head(n = 25)
+edges <- data.frame(
+  from = "DFU 16S",
+  to = network_taxa$Genus
+)
+names(genus_sum)
+head(genus_sum)
+names(tax)
+tax$Genus <- stringr::str_extract(
+  tax$`#OTU ID`,
+  "g__[^;]+"
+)
+tax$Genus <- sub("^g__", "", tax$Genus)
+names(tax)
+genus_long <- tax %>%
+  dplyr::select(
+    Genus,
+    DF_01,
+    DF_02,
+    DF_03,
+    DF_04,
+    DF_05
+  ) %>%
+  tidyr::pivot_longer(
+    cols = starts_with("DF_"),
+    names_to = "Sample",
+    values_to = "Abundance"
+  )
+genus_long$Abundance <- as.numeric(genus_long$Abundance)
+genus_long$Genus[
+  is.na(genus_long$Genus) |
+    genus_long$Genus == ""
+] <- "Unclassified"
+genus_sum <- genus_long %>%
+  group_by(Sample, Genus) %>%
+  summarise(
+    Abundance = sum(Abundance, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  group_by(Sample) %>%
+  mutate(
+    Relative = 100 * Abundance / sum(Abundance)
+  ) %>%
+  ungroup()
+names(genus_sum)
+network_taxa <- genus_sum %>%
+  filter(
+    Genus != "Unclassified",
+    !is.na(Genus)
+  ) %>%
+  group_by(Genus) %>%
+  summarise(
+    Total = sum(Relative),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Total)) %>%
+  slice_head(n = 25)
+network_taxa
+radial_df <- network_taxa %>%
+  arrange(desc(Total)) %>%
+  mutate(
+    Taxon = Genus,
+    id = row_number(),
+    angle = 2 * pi * (id - 1) / n(),
+    Group = rep(
+      c("Group 1", "Group 2", "Group 3", "Group 4"),
+      length.out = n()
+    )
+  )
+radial_df <- radial_df %>%
+  mutate(
+    Ring = rep(c(1, 2, 3, 4, 5), length.out = n()),
+    x = Ring * cos(angle),
+    y = Ring * sin(angle)
+  )
+head(radial_df)
+radial_edges <- radial_df %>%
+  transmute(
+    x = 0,
+    y = 0,
+    xend = x,
+    yend = y
+  )
+radial_cols <- c(
+  "Group 1" = "#2B6CA3",
+  "Group 2" = "#43AA8B",
+  "Group 3" = "#F28E2B",
+  "Group 4" = "#D94B4B"
+)
+p8A <- ggplot()
+p8A <- p8A +
+  annotate(
+    "path",
+    x = r * cos(seq(0, 2*pi, length.out = 300)),
+    y = r * sin(seq(0, 2*pi, length.out = 300)),
+    colour = "grey82",
+    linewidth = 0.25
+  )
+}
+p8A <- p8A +
+  geom_segment(
+    data = radial_edges,
+    aes(
+      x = x,
+      y = y,
+      xend = xend,
+      yend = yend
+    ),
+    colour = "grey65",
+    linewidth = 0.3,
+    alpha = 0.7
+  )
+for (r in 1:5) {
+  p8A <- p8A +
+    annotate(
+      "path",
+      x = r * cos(seq(0, 2*pi, length.out = 300)),
+      y = r * sin(seq(0, 2*pi, length.out = 300)),
+      colour = "grey82",
+      linewidth = 0.25
+    )
+  p8A <- p8A +
+    geom_segment(
+      data = radial_edges,
+      aes(
+        x = x,
+        y = y,
+        xend = xend,
+        yend = yend
+      ),
+      colour = "grey65",
+      linewidth = 0.3,
+      alpha = 0.7
+    )  
+  p8A <- p8A +
+    geom_point(
+      data = radial_df,
+      aes(
+        x = x,
+        y = y,
+        colour = Group,
+        size = Total
+      ),
+      alpha = 0.95
+    )  
+  p8A <- p8A +
+    scale_colour_manual(
+      values = radial_cols,
+      guide = "none"
+    )  
+  p8A <- p8A +
+    scale_size_continuous(
+      range = c(2, 5.5),
+      guide = "none"
+    )  
+  radial_df <- radial_df %>%
+    mutate(
+      label_x = 5.65 * cos(angle),
+      label_y = 5.65 * sin(angle),
+      label_angle = angle * 180 / pi,
+      label_angle = ifelse(
+        label_angle > 90 & label_angle < 270,
+        label_angle + 180,
+        label_angle
+      ),
+      label_hjust = ifelse(
+        cos(angle) < 0,
+        1,
+        0
+      )
+    )  
+  p8A <- p8A +
+    geom_text(
+      data = radial_df,
+      aes(
+        x = label_x,
+        y = label_y,
+        label = Taxon,
+        angle = label_angle,
+        hjust = label_hjust
+      ),
+      size = 2.2,
+      colour = "black"
+    )  
+  p8A <- p8A +
+    annotate(
+      "point",
+      x = 0,
+      y = 0,
+      size = 7,
+      shape = 21,
+      fill = "white",
+      colour = "black",
+      stroke = 0.6
+    )  
+  p8A <- p8A +
+    annotate(
+      "text",
+      x = 0,
+      y = 0,
+      label = "DFU\n16S",
+      fontface = "bold",
+      size = 3
+    )  
+  p8A <- p8A +
+    coord_equal(
+      xlim = c(-6.5, 6.5),
+      ylim = c(-6.5, 6.5),
+      clip = "off"
+    ) +
+    theme_void() +
+    theme(
+      plot.margin = margin(15, 25, 15, 25)
+    )  
+  p8A  
+p8A 

@@ -1,0 +1,104 @@
+tax_tree <- micro
+)
+
+tax_tree$Class <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "c__[^;]+"
+)
+tax_tree$Order <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "o__[^;]+"
+)
+tax_tree$Family <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "f__[^;]+"
+)
+tax_tree$Genus <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "g__[^;]+"
+)
+tax_tree$Phylum <- sub("^p__", "", tax_tree$Phylum)
+tax_tree$Class  <- sub("^c__", "", tax_tree$Class)
+tax_tree$Order  <- sub("^o__", "", tax_tree$Order)
+tax_tree$Family <- sub("^f__", "", tax_tree$Family)
+tax_tree$Genus  <- sub("^g__", "", tax_tree$Genus)
+head(
+  tax_tree[
+    ,
+    c(
+      "Phylum",
+      "Class",
+      "Order",
+      "Family",
+      "Genus"
+    )
+  ],
+  15
+)
+length(unique(na.omit(tax_tree$Genus)))
+Q
+names(micro)
+tax_tree <- as.data.frame(micro)
+tax_tree$Phylum <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "p__[^;]+"
+)
+names(tax_tree)
+tax_tree$Class <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "c__[^;]+"
+)
+tax_tree$Order <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "o__[^;]+"
+)
+tax_tree$Family <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "f__[^;]+"
+)
+tax_tree$Genus <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "g__[^;]+"
+)
+tax_tree$Phylum <- sub("^p__", "", tax_tree$Phylum)
+tax_tree$Class <- sub("^c__", "", tax_tree$Class)
+tax_tree$Order <- sub("^o__", "", tax_tree$Order)
+tax_tree$Family <- sub("^f__", "", tax_tree$Family)
+tax_tree$Genus <- sub("^g__", "", tax_tree$Genus)
+names(tax_tree)
+head(tax_tree[, c("Phylum", "Class", "Order", "Family", "Genus")])
+tree_tax <- tax_tree %>%
+  dplyr::select(
+    Phylum,
+    Class,
+    Order,
+    Family,
+    Genus
+  ) %>%
+  dplyr::filter(
+    !is.na(Phylum),
+    !is.na(Genus),
+    Genus != ""
+  ) %>%
+  dplyr::distinct()
+head(tree_tax, 10)
+tree_tax$Class[
+  is.na(tree_tax$Class) | tree_tax$Class == ""
+] <- "Unclassified_class"
+tree_tax$Order[
+  is.na(tree_tax$Order) | tree_tax$Order == ""
+] <- "Unclassified_order"
+tree_tax$Family[
+  is.na(tree_tax$Family) | tree_tax$Family == ""
+] <- "Unclassified_family"
+install.packages(c("igraph", "ggraph"))
+library(igraph)
+library(ggraph)
+install.packages(c("igraph", "ggraph"))
+Q
+Q
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)

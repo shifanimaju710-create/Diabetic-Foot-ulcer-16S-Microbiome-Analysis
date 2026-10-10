@@ -1,0 +1,962 @@
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(patchwork)
+library(scales)
+library(readxl)
+names(micro)
+head(micro[, 1:8])
+names(micro)
+head(micro)
+tail(micro)
+micro[["#OTU ID"]][1:10]
+micro[["#OTU ID"]][1:10]
+library(dplyr)
+library(tidyr)
+library(stringr)
+tax <- micro %>%
+  mutate(
+    Phylum = str_extract(`#OTU ID`, "p__[^;]+"),
+    Family = str_extract(`#OTU ID`, "f__[^;]+")
+  )
+tax$Phylum <- sub("^p__", "", tax$Phylum)
+tax$Family <- sub("^f__", "", tax$Family)
+unique(tax$Phylum)
+unique(tax$Family)[1:20]
+phylum_long <- tax %>%
+  select(Phylum, DF_01, DF_02, DF_03, DF_04, DF_05) %>%
+  pivot_longer(
+    cols = starts_with("DF_"),
+    names_to = "Sample",
+    values_to = "Abundance"
+  )
+phylum_long$Abundance <- as.numeric(phylum_long$Abundance)
+phylum_sum <- phylum_long %>%
+  group_by(Sample, Phylum) %>%
+  summarise(
+    Abundance = sum(Abundance, na.rm = TRUE),
+    .groups = "drop"
+  )
+phylum_sum <- phylum_sum %>%
+  group_by(Sample) %>%
+  mutate(
+    Relative = 100 * Abundance / sum(Abundance)
+  ) %>%
+  ungroup()  
+phylum_sum
+major_phyla <- c(
+  "Proteobacteria",
+  "Actinobacteriota",
+  "Firmicutes",
+  "Bacteroidota",
+  "Fusobacteriota"
+)
+phylum_plot <- phylum_sum %>%
+  mutate(
+    Phylum_plot = ifelse(
+      Phylum %in% major_phyla,
+      Phylum,
+      "Other"
+    )
+  ) %>%
+  group_by(Sample, Phylum_plot) %>%
+  summarise(
+    Relative = sum(Relative),
+    .groups = "drop"
+  )  
+phylum_plot$Sample <- factor(
+  phylum_plot$Sample,
+  levels = c(
+    "DF_01",
+    "DF_02",
+    "DF_03",
+    "DF_04",
+    "DF_05"
+  )
+)
+phylum_cols <- c(
+  "Proteobacteria" = "#2B6CA3",
+  "Actinobacteriota" = "#43AAA4",
+  "Firmicutes" = "#F6D55C",
+  "Bacteroidota" = "#F05A40",
+  "Fusobacteriota" = "#5DA5DA",
+  "Other" = "#58CF87"
+)phylum_cols <- c(
+  "Proteobacteria" = "#2B6CA3",
+  "Actinobacteriota" = "#43AAA4",
+  "Firmicutes" = "#F6D55C",
+  "Bacteroidota" = "#F05A40",
+  "Fusobacteriota" = "#5DA5DA",
+  "Other" = "#58CF87"
+)
+pPhylum <- ggplot(
+  phylum_plot,
+  aes(
+    x = Sample,
+    y = Relative,
+    fill = Phylum_plot
+  )
+)
+pPhylum <- pPhylum + geom_col(
+  width = 0.78,
+  colour = "white",
+  linewidth = 0.15
+)
+pPhylum <- pPhylum + scale_fill_manual(
+  values = phylum_cols,
+  name = NULL
+)
+pPhylum <- pPhylum + scale_y_continuous(
+  limits = c(0, 100),
+  breaks = seq(0, 100, 20),
+  labels = function(x) paste0(x, "%"),
+  expand = c(0, 0)
+)
+pPhylum <- pPhylum + labs(
+  title = "A. Phylum-level relative abundance",
+  x = NULL,
+  y = "Relative abundance (%)"
+)
+pPhylum <- pPhylum + theme_classic(base_size = 9) +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 10,
+      hjust = 0
+    ),
+    axis.title.y = element_text(size = 9),
+    axis.text = element_text(
+      size = 8,
+      colour = "black"
+    ),
+    legend.position = "bottom",
+    legend.text = element_text(size = 7),
+    legend.key.size = grid::unit(0.35, "cm"),
+    axis.line = element_line(
+      linewidth = 0.4,
+      colour = "black"
+    )
+  )
+pPhylum
+Q
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+phylum_sum <- phylum_long %>%
+  group_by(Sample, Phylum) %>%
+  summarise(
+    Abundance = sum(Abundance, na.rm = TRUE),
+    .groups = "drop"
+  )
+exists("micro")
+phylum_long <- tax %>%
+  dplyr::select(
+    Phylum,
+    DF_01,
+    DF_02,
+    DF_03,
+    DF_04,
+    DF_05
+  ) %>%
+  tidyr::pivot_longer(
+    cols = starts_with("DF_"),
+    names_to = "Sample",
+    values_to = "Abundance"
+  )  
+phylum_long$Abundance <- as.numeric(phylum_long$Abundance)
+library(dplyr)
+library(tidyr)
+library(stringr)
+tax <- micro %>%
+  mutate(
+    Phylum = stringr::str_extract(
+      `#OTU ID`,
+      "p__[^;]+"
+    )
+  )
+tax$Phylum <- sub("^p__", "", tax$Phylum)
+unique(tax$Phylum)
+phylum_long <- tax %>%
+  select(
+    Phylum,
+    DF_01,
+    DF_02,
+    DF_03,
+    DF_04,
+    DF_05
+  ) %>%
+  pivot_longer(
+    cols = starts_with("DF_"),
+    names_to = "Sample",
+    values_to = "Abundance"
+  )  
+phylum_long <- tax %>%
+  select(
+    Phylum,
+    DF_01,
+    DF_02,
+    DF_03,
+    DF_04,
+    DF_05
+  ) %>%
+  pivot_longer(
+    cols = starts_with("DF_"),
+    names_to = "Sample",
+    values_to = "Abundance"
+  )
+phylum_long$Abundance <- as.numeric(phylum_long$Abundance)
+head(phylum_long)
+phylum_sum <- phylum_long %>%
+  group_by(Sample, Phylum) %>%
+  summarise(
+    Abundance = sum(Abundance, na.rm = TRUE),
+    .groups = "drop"
+  )
+phylum_sum <- phylum_sum %>%
+  group_by(Sample) %>%
+  mutate(
+    Relative = 100 * Abundance / sum(Abundance)
+  ) %>%
+  ungroup()  
+phylum_sum <- phylum_sum %>%
+  group_by(Sample) %>%
+  mutate(
+    Relative = 100 * Abundance / sum(Abundance)
+  ) %>%
+  ungroup()
+phylum_sum
+major_phyla <- c(
+  "Proteobacteria",
+  "Actinobacteriota",
+  "Firmicutes",
+  "Bacteroidota",
+  "Fusobacteriota"
+)
+phylum_plot <- phylum_sum %>%
+  mutate(
+    Phylum_plot = ifelse(
+      is.na(Phylum) | !(Phylum %in% major_phyla),
+      "Other",
+      Phylum
+    )
+  ) %>%
+  group_by(Sample, Phylum_plot) %>%
+  summarise(
+    Relative = sum(Relative, na.rm = TRUE),
+    .groups = "drop"
+  )
+phylum_plot$Sample <- factor(
+  phylum_plot$Sample,
+  levels = c("DF_01", "DF_02", "DF_03", "DF_04", "DF_05")
+)
+phylum_cols <- c(
+  "Proteobacteria" = "#2878B5",
+  "Actinobacteriota" = "#43AA8B",
+  "Firmicutes" = "#F9C74F",
+  "Bacteroidota" = "#F94144",
+  "Fusobacteriota" = "#9B5DE5",
+  "Other" = "#BDBDBD"
+)
+pPhylum <- ggplot(
+  phylum_plot,
+  aes(
+    x = Sample,
+    y = Relative,
+    fill = Phylum_plot
+  )
+)
+pPhylum <- pPhylum + geom_col(
+  width = 0.72,
+  colour = "white",
+  linewidth = 0.25
+)
+pPhylum <- pPhylum + scale_fill_manual(
+  values = phylum_cols,
+  name = NULL
+)
+pPhylum <- pPhylum + scale_y_continuous(
+  limits = c(0, 100),
+  breaks = seq(0, 100, 20),
+  labels = function(x) paste0(x, "%"),
+  expand = c(0, 0)
+)
+pPhylum <- pPhylum + labs(
+  title = "A. Phylum-level relative abundance",
+  x = NULL,
+  y = "Relative abundance (%)"
+)
+pPhylum <- pPhylum + theme_classic(base_size = 10)
+pPhylum <- pPhylum + theme(
+  plot.title = element_text(
+    face = "bold",
+    size = 11,
+    hjust = 0
+  ),
+  axis.title.y = element_text(
+    face = "bold",
+    size = 9
+  ),
+  axis.text = element_text(
+    size = 8,
+    colour = "black"
+  ),
+  legend.position = "bottom",
+  legend.text = element_text(size = 7.5),
+  legend.key.size = grid::unit(0.35, "cm"),
+  axis.line = element_line(
+    colour = "black",
+    linewidth = 0.45
+  )
+)
+pPhylum
+dominant_phylum <- phylum_plot %>%
+  group_by(Sample) %>%
+  slice_max(
+    order_by = Relative,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup()
+dominant_phylum
+dominant_phylum$Sample <- factor(
+  dominant_phylum$Sample,
+  levels = c(
+    "DF_01",
+    "DF_02",
+    "DF_03",
+    "DF_04",
+    "DF_05"
+  )
+)
+pDominant <- ggplot(
+  dominant_phylum,
+  aes(
+    x = Relative,
+    y = Sample,
+    fill = Phylum_plot
+  )
+)
+pDominant <- pDominant + geom_col(
+  width = 0.62,
+  colour = "white",
+  linewidth = 0.25
+)
+pDominant <- pDominant + scale_fill_manual(
+  values = phylum_cols,
+  name = NULL
+)
+pDominant <- pDominant + geom_text(
+  aes(
+    label = sprintf("%.1f%%", Relative)
+  ),
+  hjust = -0.15,
+  size = 3.2,
+  fontface = "bold"
+)
+pDominant <- pDominant + scale_x_continuous(
+  limits = c(0, 110),
+  breaks = seq(0, 100, 20),
+  labels = function(x) paste0(x, "%"),
+  expand = c(0, 0)
+)
+pDominant <- pDominant + labs(
+  title = "B. Dominant phylum per sample",
+  x = "Relative abundance (%)",
+  y = NULL
+)
+pDominant <- pDominant + theme_classic(
+  base_size = 10
+)
+pDominant <- pDominant + theme(
+  plot.title = element_text(
+    face = "bold",
+    size = 11,
+    hjust = 0
+  ),
+  axis.title.x = element_text(
+    face = "bold",
+    size = 9
+  ),
+  axis.text = element_text(
+    size = 8,
+    colour = "black"
+  ),
+  legend.position = "none",
+  axis.line = element_line(
+    colour = "black",
+    linewidth = 0.45
+  )
+)
+pDominant
+tax$Family <- stringr::str_extract(
+  tax$`#OTU ID`,
+  "f__[^;]+"
+)
+tax$Family <- sub("^f__", "", tax$Family)
+unique(tax$Family)[1:20]
+family_long <- tax %>%
+  select(
+    Family,
+    DF_01,
+    DF_02,
+    DF_03,
+    DF_04,
+    DF_05
+  ) %>%
+  pivot_longer(
+    cols = starts_with("DF_"),
+    names_to = "Sample",
+    values_to = "Abundance"
+  )
+family_long$Abundance <- as.numeric(family_long$Abundance)
+family_sum <- family_long %>%
+  group_by(Sample, Family) %>%
+  summarise(
+    Abundance = sum(Abundance, na.rm = TRUE),
+    .groups = "drop"
+  )
+family_sum$Family[
+  is.na(family_sum$Family)
+] <- "Unassigned"
+top10 <- family_sum %>%
+  group_by(Family) %>%
+  summarise(
+    Total = sum(Abundance),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Total)) %>%
+  slice_head(n = 10) %>%
+  pull(Family)
+top10
+family_plot <- family_sum %>%
+  mutate(
+    Family_plot = ifelse(
+      Family %in% top10,
+      Family,
+      "Other"
+    )
+  ) %>%
+  group_by(Sample, Family_plot) %>%
+  summarise(
+    Abundance = sum(Abundance),
+    .groups = "drop"
+  )
+family_plot <- family_plot %>%
+  group_by(Sample) %>%
+  mutate(
+    Relative = 100 * Abundance / sum(Abundance)
+  ) %>%
+  ungroup()
+family_plot$Sample <- factor(
+  family_plot$Sample,
+  levels = c(
+    "DF_01",
+    "DF_02",
+    "DF_03",
+    "DF_04",
+    "DF_05"
+  )
+)
+pFamily <- ggplot(
+  family_plot,
+  aes(
+    x = Sample,
+    y = Relative,
+    fill = Family_plot
+  )
+)
+pFamily <- pFamily + geom_col(
+  width = 0.72,
+  colour = "white",
+  linewidth = 0.2
+)
+pFamily <- pFamily + scale_y_continuous(
+  limits = c(0, 100),
+  breaks = seq(0, 100, 20),
+  labels = function(x) paste0(x, "%"),
+  expand = c(0, 0)
+)
+pFamily <- pFamily + labs(
+  title = "C. Top 10 bacterial families",
+  x = NULL,
+  y = "Relative abundance (%)",
+  fill = NULL
+)
+pFamily <- pFamily + theme_classic(base_size = 10)
+pFamily <- pFamily + theme(
+  plot.title = element_text(
+    face = "bold",
+    size = 11
+  ),
+  axis.title.y = element_text(
+    face = "bold",
+    size = 9
+  ),
+  axis.text = element_text(
+    size = 8,
+    colour = "black"
+  ),
+  legend.position = "right",
+  legend.text = element_text(size = 7),
+  legend.key.size = grid::unit(0.35, "cm"),
+  axis.line = element_line(
+    linewidth = 0.45,
+    colour = "black"
+  )
+)
+pFamily
+family_names <- unique(family_plot$Family_plot)
+family_palette_base <- c(
+  "#4E79A7",
+  "#F28E2B",
+  "#E15759",
+  "#76B7B2",
+  "#59A14F",
+  "#EDC948",
+  "#B07AA1",
+  "#FF9DA7",
+  "#9C755F",
+  "#BAB0AC",
+  "#86BCB6"
+)
+family_cols <- setNames(
+  family_palette_base[seq_along(family_names)],
+  family_names
+)
+family_cols
+pFamily <- pFamily + scale_fill_manual(
+  values = family_cols,
+  name = NULL
+)
+pFamily
+library(patchwork)
+Figure5 <- pPhylum | (pDominant / pFamily)
+Figure5 <- Figure5 + plot_layout(
+  widths = c(1.15, 1)
+)
+Figure5
+Figure5_horizontal <- pPhylum | pDominant | pFamily
+Figure5_horizontal
+ggsave(
+  "Figure5_DFU_taxonomic_composition.pdf",
+  Figure5,
+  width = 180,
+  height = 120,
+  units = "mm"
+)
+ggsave(
+  "Figure5_DFU_taxonomic_composition.tiff",
+  Figure5,
+  width = 180,
+  height = 120,
+  units = "mm",
+  dpi = 600,
+  compression = "lzw"
+)
+families_keep <- c(
+  "Corynebacteriaceae",
+  "Moraxellaceae",
+  "Neisseriaceae",
+  "Porphyromonadaceae",
+  "Enterobacteriaceae",
+  "Veillonellaceae",
+  "Streptococcaceae",
+  "Peptostreptococcaceae",
+  "Lachnospiraceae",
+  "Staphylococcaceae"
+)
+sort(unique(family_sum$Family))
+family_plot <- family_sum %>%
+  mutate(
+    Family_plot = ifelse(
+      Family %in% families_keep,
+      Family,
+      "Other"
+    )
+  ) %>%
+  group_by(Sample, Family_plot) %>%
+  summarise(
+    Abundance = sum(Abundance, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  group_by(Sample) %>%
+  mutate(
+    Relative = 100 * Abundance / sum(Abundance)
+  ) %>%
+  ungroup()
+family_plot %>%
+  filter(Family_plot == "Corynebacteriaceae")
+family_plot %>%
+  filter(Family_plot != "Other") %>%
+  arrange(Sample, desc(Relative))
+family_order <- c(
+  "Corynebacteriaceae",
+  "Moraxellaceae",
+  "Neisseriaceae",
+  "Porphyromonadaceae",
+  "Enterobacteriaceae",
+  "Veillonellaceae",
+  "Streptococcaceae",
+  "Peptostreptococcaceae",
+  "Lachnospiraceae",
+  "Staphylococcaceae",
+  "Other"
+)
+family_plot$Family_plot <- factor(
+  family_plot$Family_plot,
+  levels = family_order
+)
+family_plot$Sample <- factor(
+  family_plot$Sample,
+  levels = c(
+    "DF_01",
+    "DF_02",
+    "DF_03",
+    "DF_04",
+    "DF_05"
+  )
+)
+family_cols <- c(
+  "Corynebacteriaceae" = "#2B6CA3",
+  "Moraxellaceae" = "#43AAA4",
+  "Neisseriaceae" = "#F6D55C",
+  "Porphyromonadaceae" = "#F05A40",
+  "Enterobacteriaceae" = "#8E44AD",
+  "Veillonellaceae" = "#5DA5DA",
+  "Streptococcaceae" = "#58CF87",
+  "Peptostreptococcaceae" = "#F5B041",
+  "Lachnospiraceae" = "#A569BD",
+  "Staphylococcaceae" = "#566573",
+  "Other" = "#D35400"
+)
+pFamily <- ggplot(
+  family_plot,
+  aes(
+    x = Sample,
+    y = Relative,
+    fill = Family_plot
+  )
+)
+pFamily <- pFamily + geom_col(
+  width = 0.72,
+  colour = "white",
+  linewidth = 0.2
+)
+pFamily <- pFamily + scale_fill_manual(
+  values = family_cols,
+  drop = FALSE,
+  name = NULL
+)
+pFamily <- pFamily + scale_y_continuous(
+  limits = c(0, 100),
+  breaks = seq(0, 100, 20),
+  labels = function(x) paste0(x, "%"),
+  expand = c(0, 0)
+)
+pFamily <- pFamily + labs(
+  title = "C. Dominant bacterial families",
+  x = NULL,
+  y = "Relative abundance (%)"
+)
+pFamily <- pFamily + theme_classic(base_size = 10)
+pFamily <- pFamily + theme(
+  plot.title = element_text(
+    face = "bold",
+    size = 11
+  ),
+  axis.text = element_text(
+    size = 8,
+    colour = "black"
+  ),
+  axis.title.y = element_text(
+    size = 9,
+    face = "bold"
+  ),
+  legend.position = "right",
+  legend.text = element_text(size = 7),
+  legend.key.height = grid::unit(0.35, "cm"),
+  axis.line = element_line(
+    linewidth = 0.4,
+    colour = "black"
+  )
+)
+pFamily
+library(patchwork)
+pDominant <- ggplot(
+  dominant_phylum,
+  aes(
+    x = Relative,
+    y = Sample,
+    fill = Phylum_plot
+  )
+)
+pDominant <- pDominant + geom_col(
+  width = 0.62,
+  colour = "white",
+  linewidth = 0.2
+)
+pDominant <- pDominant + geom_text(
+  aes(
+    label = paste0(
+      Phylum_plot,
+      " (",
+      sprintf("%.1f", Relative),
+      "%)"
+    )
+  ),
+  hjust = -0.05,
+  size = 3
+)
+pDominant <- pDominant + scale_fill_manual(
+  values = phylum_cols,
+  guide = "none"
+)
+pDominant <- pDominant + scale_x_continuous(
+  limits = c(0, 125),
+  breaks = seq(0, 100, 20),
+  expand = c(0, 0)
+)
+pDominant <- pDominant + labs(
+  title = "B. Dominant phylum per sample",
+  x = "Relative abundance (%)",
+  y = NULL
+)
+pDominant <- pDominant + theme_classic(base_size = 10)
+Figure5 <- pPhylum + pDominant + pFamily +
+  plot_layout(
+    widths = c(1.05, 1.35, 1.35)
+  )
+Figure5
+Figure5_title <- Figure5 +
+  plot_annotation(
+    title = "Taxonomic composition of DFU microbiota",
+    theme = theme(
+      plot.title = element_text(
+        face = "bold",
+        size = 14,
+        hjust = 0
+      )
+    )
+  )
+Figure5_title
+ggsave(
+  "Figure5_Taxonomic_Composition.pdf",
+  Figure5,
+  width = 190,
+  height = 85,
+  units = "mm"
+)
+ggsave(
+  "Figure5_Taxonomic_Composition.tiff",
+  Figure5,
+  width = 190,
+  height = 85,
+  units = "mm",
+  dpi = 600,
+  compression = "lzw"
+)
+phylum_sum %>%
+  filter(
+    is.na(Phylum) |
+      !(Phylum %in% major_phyla)
+  ) %>%
+  arrange(Sample, desc(Relative))
+unique(phylum_sum$Phylum)
+pPhylum <- pPhylum +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 9,
+      margin = margin(b = 6)
+    ),
+    legend.position = "right",
+    legend.text = element_text(size = 6.5),
+    legend.key.height = grid::unit(0.3, "cm"),
+    axis.text.x = element_text(
+      size = 7,
+      angle = 45,
+      hjust = 1
+    ),
+    axis.title.y = element_text(
+      size = 8,
+      face = "bold"
+    )
+  )
+pDominant <- pDominant +
+  scale_x_continuous(
+    breaks = seq(0, 100, 20),
+    limits = c(0, 145),
+    expand = c(0, 0)
+  ) +
+  coord_cartesian(
+    clip = "off"
+  ) +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 9,
+      margin = margin(b = 6)
+    ),
+    axis.text = element_text(
+      size = 7,
+      colour = "black"
+    ),
+    axis.title.x = element_text(
+      size = 8,
+      face = "bold"
+    ),
+    plot.margin = margin(
+      5, 25, 5, 5
+    )
+  )
+pFamily <- pFamily +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 9,
+      margin = margin(b = 6)
+    ),
+    axis.text.x = element_text(
+      size = 7,
+      angle = 45,
+      hjust = 1
+    ),
+    axis.text.y = element_text(
+      size = 7,
+      colour = "black"
+    ),
+    axis.title.y = element_text(
+      size = 8,
+      face = "bold"
+    ),
+    legend.position = "right",
+    legend.text = element_text(size = 6.5),
+    legend.key.height = grid::unit(0.28, "cm")
+  )
+pPhylum <- pPhylum +
+  labs(
+    title = "Phylum-level relative abundance"
+  )
+pDominant <- pDominant +
+  labs(
+    title = "Dominant phylum per sample"
+  )
+pFamily <- pFamily +
+  labs(
+    title = "Family-level relative abundance"
+  )
+library(patchwork)
+Figure5_final <-
+  (pPhylum | pDominant | pFamily) +
+  plot_layout(
+    widths = c(1.15, 1.35, 1.65)
+  ) +
+  plot_annotation(
+    tag_levels = "A"
+  )
+Figure5_final <- Figure5_final &
+  theme(
+    plot.tag = element_text(
+      face = "bold",
+      size = 11
+    ),
+    plot.tag.position = c(0, 1)
+  )
+Figure5_final
+pPhylum <- pPhylum +
+  labs(title = "Phylum-level relative abundance")
+pDominant <- pDominant +
+  labs(title = "Dominant phylum per sample")
+pFamily <- pFamily +
+  labs(title = "Family-level relative abundance")
+pPhylum <- pPhylum +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 10,
+      hjust = 0
+    ),
+    legend.position = "bottom",
+    legend.text = element_text(size = 7),
+    legend.key.size = grid::unit(0.35, "cm"),
+    axis.text.x = element_text(
+      size = 8,
+      angle = 0
+    ),
+    axis.text.y = element_text(size = 8),
+    axis.title = element_text(size = 9)
+  ) +
+  guides(
+    fill = guide_legend(
+      nrow = 2,
+      byrow = TRUE
+    )
+  )
+pDominant <- pDominant +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 10,
+      hjust = 0
+    ),
+    axis.text = element_text(
+      size = 8,
+      colour = "black"
+    ),
+    axis.title = element_text(size = 9),
+    plot.margin = margin(5, 20, 5, 5)
+  ) +
+  coord_cartesian(
+    clip = "off"
+  )
+pFamily <- pFamily +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 10,
+      hjust = 0
+    ),
+    legend.position = "right",
+    legend.text = element_text(size = 7),
+    legend.key.height = grid::unit(0.32, "cm"),
+    axis.text.x = element_text(
+      size = 8,
+      angle = 0
+    ),
+    axis.text.y = element_text(size = 8),
+    axis.title = element_text(size = 9)
+  )
+library(patchwork)
+Figure5_pub <-
+  (pPhylum | pDominant) /
+  pFamily +
+  plot_layout(
+    heights = c(1, 1.15)
+  ) +
+  plot_annotation(
+    tag_levels = "A"
+  )
+Figure5_pub <- Figure5_pub &
+  theme(
+    plot.tag = element_text(
+      face = "bold",
+      size = 11
+    )
+  )
+Figure5_pub
+ggsave(
+  "Figure5_publication.pdf",
+  Figure5_pub,
+  width = 170,
+  height = 150,
+  units = "mm"
+)
+ggsave(
+  "Figure5_publication.tiff",
+  Figure5_pub,
+  width = 170,
+  height = 150,
+  units = "mm",
+  dpi = 600,
+  compression = "lzw"
+)

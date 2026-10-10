@@ -1,0 +1,1741 @@
+# CIRCULAR PHYLOGENETIC TREE + CONCENTRIC ABUNDANCE HEATMAP
+# Publication-quality R workflow
+# ============================================================
+
+# Install packages once if required
+# install.packages(c("ggplot2", "dplyr", "tidyr", "ape"))
+# install.packages("BiocManager")
+# BiocManager::install(c("ggtree", "ggtreeExtra"))
+
+library(ape)
+library(ggtree)
+library(ggtreeExtra)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+
+# ============================================================
+# 1. IMPORT YOUR DATA
+# ============================================================
+
+# Phylogenetic tree
+tree <- read.tree("your_tree.nwk")
+
+# Abundance table
+# Expected format:
+#
+# Genus              DF_01   DF_02   DF_03   DF_04   DF_05
+# Acinetobacter      1000     500      10      50     100
+# Corynebacterium     200     400      20    5000      30
+# Porphyromonas        20      50     100      10    3000
+#
+abundance <- read.csv(
+  "abundance.csv",
+  check.names = FALSE
+)
+
+
+# ============================================================
+# 2. PREPARE ABUNDANCE DATA
+# ============================================================
+
+abundance_long <- abundance %>%
+  pivot_longer(
+    cols = -Genus,
+    names_to = "Sample",
+    values_to = "Abundance"
+  ) %>%
+  mutate(
+    log_abundance = log10(Abundance + 1)
+  )
+
+
+# ============================================================
+# 3. CHECK TREE LABELS AGAINST ABUNDANCE TABLE
+# ============================================================
+
+tree_taxa <- tree$tip.label
+data_taxa <- unique(abundance_long$Genus)
+
+# Taxa present in tree but absent from abundance data
+setdiff(tree_taxa, data_taxa)
+
+# Taxa present in abundance data but absent from tree
+setdiff(data_taxa, tree_taxa)
+p <- ggtree(
+  tree,
+  layout = "fan",
+  open.angle = 25,
+  size = 0.45
+) +
+  geom_tiplab(
+    aes(label = label),
+    size = 3.0,
+    offset = 0.7,
+    align = FALSE,
+    fontface = "italic"
+  ) +
+  xlim(0, max(nodeHeights(tree)) * 1.65) +
+  theme_void()
+p <- ggtree(
+  tree,
+  layout = "fan",
+  open.angle = 35,
+  size = 0.6
+) +
+  geom_tiplab(
+    aes(label = label),
+    size = 4.0,          # larger, clearly readable font
+    offset = 1.0,        # more space between branch and text
+    align = FALSE,
+    fontface = "italic",
+    linesize = 0.3
+  ) +
+  xlim(0, max(nodeHeights(tree)) * 1.9) +
+  theme_void()
+p_final <- p +
+  geom_fruit(
+    data = abundance_long,
+    geom = geom_tile,
+    mapping = aes(
+      y = Genus,
+      x = Sample,
+      fill = log_abundance
+    ),
+    offset = 0.12,
+    pwidth = 0.30,
+    grid.params = list(
+      color = "white",
+      size = 0.3
+    )
+  ) +
+  scale_fill_gradientn(
+    colours = c(
+      "#fff7ec",
+      "#fee8c8",
+      "#fdbb84",
+      "#fc8d59",
+      "#ef6548",
+      "#d7301f",
+      "#990000"
+    ),
+    name = expression(log[10] * "(Abundance + 1)")
+  ) +
+  theme(
+    legend.position = "right",
+    
+    legend.title = element_text(
+      size = 13
+    ),
+    
+    legend.text = element_text(
+      size = 11
+    )
+  )
+ls()
+head(abundance)
+library(dplyr)
+library(tidyr)
+abundance_long <- abundance %>%
+  pivot_longer(
+    cols = -Genus,
+    names_to = "Sample",
+    values_to = "Abundance"
+  ) %>%
+  mutate(
+    log_abundance = log10(Abundance + 1)
+  )
+head(abundance_long)
+size
+offset
+open.angle
+xlim
+legend text size
+plot dimensions
+head(abundance_long)
+str(abundance_long)
+ls()
+ls.str()
+library(dplyr)
+library(tidyr)
+abundance_long <- abundance %>%
+  pivot_longer(
+    cols = -Genus,
+    names_to = "Sample",
+    values_to = "Abundance"
+  ) %>%
+  mutate(
+    Abundance = as.numeric(Abundance),
+    log_abundance = log10(Abundance + 1)
+  )
+ls()
+file.choose()file.choose()
+file.choose()
+abundance <- read.csv(
+  file.choose(),
+  check.names = FALSE
+)
+head(abundance)
+colnames(abundance)
+windowsFonts(
+  TimesNewRoman = windowsFont("Times New Roman")
+)windowsFonts(
+  windowsFonts(
+    TimesNewRoman = windowsFont("Times New Roman")
+  )
+  windowsFonts(
+    TimesNewRoman = windowsFont("Times New Roman")
+  )  
+  TimesNewRoman = windowsFont("Times New Roman")
+)
+p_labels_clean <- p_vibrant +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, !italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "bold",
+    size = 2.4,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "bold.italic",
+    size = 2.4,
+    colour = "black"
+  )
+windows(width = 16, height = 16)
+print(p_labels_clean)
+label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.94
+tip_pos <- dplyr::mutate(
+  tip_pos,
+  label_x = label_radius,
+  label_angle = angle,
+  
+  label_hjust = dplyr::if_else(
+    label_angle > 90 & label_angle < 270,
+    1,
+    0
+  ),
+  
+  label_angle = dplyr::if_else(
+    label_angle > 90 & label_angle < 270,
+    label_angle + 180,
+    label_angle
+  )
+)
+p_labels_clear <- p_vibrant +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, !italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.7,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "italic",
+    size = 2.7,
+    colour = "black"
+  )
+windows(width = 18, height = 18)
+print(p_labels_clear)
+p_final_clear <- p_labels_clear +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    # enough separation from organism names
+    offset = 0.20,
+    
+    # wide outer compartment
+    pwidth = 0.32,
+    
+    width = 0.96,
+    
+    colour = "white",
+    linewidth = 0.25,
+    
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  )
+p_final_clear <- p_final_clear +
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.box.margin = ggplot2::margin(
+      t = 0,
+      r = 0,
+      b = 0,
+      l = 5,
+      unit = "mm"
+    ),
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      face = "plain",
+      size = 9,
+      colour = "black"
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 8,
+      colour = "black"
+    ),
+    
+    plot.margin = ggplot2::margin(
+      4, 4, 4, 4,
+      unit = "mm"
+    )
+  )
+windows(width = 18, height = 17)
+print(p_final_clear)
+exists("p_labels_clear")
+library(ggplot2)
+library(ggtreeExtra)
+library(ggnewscale)
+p_final_clear <- p_labels_clear +
+  ggnewscale::new_scale_fill() +
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    offset = 0.20,
+    pwidth = 0.32,
+    width = 0.96,
+    colour = "white",
+    linewidth = 0.25,
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  )
+geom = geom_tile
+exists("p_final_clear")
+windows(width = 18, height = 17)
+print(p_final_clear)
+p_labels_clear <- p_vibrant +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, !italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.3,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "italic",
+    size = 2.3,
+    colour = "black"
+  )
+windows(width = 18, height = 18)
+print(p_labels_clear)
+ggplot2::ggsave(
+  filename = "DFU_Circular_Cladogram_1200dpi.tiff",
+  plot = p_final_clear,
+  width = 200,
+  height = 190,
+  units = "mm",
+  dpi = 1200,
+  compression = "lzw",
+  bg = "white"
+)
+ggplot2::ggsave(
+  filename = "DFU_Circular_Cladogram_1200dpi.png",
+  plot = p_final_clear,
+  width = 200,
+  height = 190,
+  units = "mm",
+  dpi = 1200,
+  bg = "white"
+)
+ggplot2::ggsave(
+  filename = "DFU_Circular_Cladogram_Vector.pdf",
+  plot = p_final_clear,
+  width = 200,
+  height = 190,
+  units = "mm",
+  device = cairo_pdf,
+  bg = "white"
+)
+levels(fan_abund$Sample)
+[1] "DF_01" "DF_02" "DF_03" "DF_04" "DF_05"
+"DF_01" "DF_02" "DF_03" "DF_04" "DF_05"
+table(fan_abund$Sample)
+sample_key <- paste(
+  "Abundance tracks (inner → outer):",
+  "DF_01 | DF_02 | DF_03 | DF_04 | DF_05"
+)
+p_final_labeled <- p_final_clear +
+  ggplot2::labs(
+    caption = sample_key
+  ) +
+  ggplot2::theme(
+    plot.caption = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 9,
+      face = "bold",
+      colour = "black",
+      hjust = 0.5,
+      margin = ggplot2::margin(t = 5)
+    )
+  )
+windows(width = 18, height = 17)
+print(p_final_labeled)
+ggplot2::ggsave(
+  filename = "DFU_Circular_Cladogram_Final_1200dpi.tiff",
+  plot = p_final_labeled,
+  width = 200,
+  height = 190,
+  units = "mm",
+  dpi = 1200,
+  compression = "lzw",
+  bg = "white"
+)
+ggplot2::ggsave(
+  filename = "DFU_Circular_Cladogram_Final_Vector.pdf",
+  plot = p_final_labeled,
+  width = 200,
+  height = 190,
+  units = "mm",
+  device = cairo_pdf,
+  bg = "white"
+)
+levels(fan_abund$Sample)
+label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.87
+tip_pos$label_x <- label_radius
+p_labels_fitted <- p_vibrant +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, !italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.0,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "italic",
+    size = 2.0,
+    colour = "black"
+  )
+windows(width = 18, height = 18)
+print(p_labels_fitted)
+ggplot2::ggsave(
+  filename = "DFU_Cladogram_Clear_Font_1200dpi.tiff",
+  plot = p_labels_fitted,
+  width = 240,
+  height = 240,
+  units = "mm",
+  dpi = 1200,
+  compression = "lzw",
+  bg = "white"
+)
+ggplot2::ggsave(
+  filename = "DFU_Cladogram_Clear_Font.pdf",
+  plot = p_labels_fitted,
+  width = 240,
+  height = 240,
+  units = "mm",
+  device = cairo_pdf,
+  bg = "white"
+)
+p_final_fitted <- p_labels_fitted +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    # space between organism names and abundance ring
+    offset = 0.22,
+    
+    # large outer compartment
+    pwidth = 0.32,
+    
+    width = 0.96,
+    
+    colour = "white",
+    linewidth = 0.25,
+    
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  )
+p_final_fitted <- p_final_fitted +
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.box.margin = ggplot2::margin(
+      0, 0, 0, 5,
+      unit = "mm"
+    ),
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 9,
+      face = "bold",
+      colour = "black"
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 8,
+      colour = "black"
+    ),
+    
+    plot.margin = ggplot2::margin(
+      4, 4, 4, 4,
+      unit = "mm"
+    )
+  )
+windows(width = 18, height = 18)
+print(p_final_fitted)
+phylum_legend <- data.frame(
+  Phylum = names(vibrant_phylum),
+  x = NA,
+  y = NA
+)
+
+p_final_fitted <- p_final_fitted +
+  ggplot2::geom_point(
+    data = phylum_legend,
+    ggplot2::aes(
+      x = x,
+      y = y,
+      colour = Phylum
+    ),
+    inherit.aes = FALSE,
+    size = 4
+  ) +
+  
+  ggplot2::scale_colour_manual(
+    name = "Phylum",
+    values = vibrant_phylum
+  ) +
+  
+  ggplot2::guides(
+    colour = ggplot2::guide_legend(
+      order = 1,
+      override.aes = list(size = 4)
+    ),
+    fill = ggplot2::guide_colourbar(
+      order = 2
+    )
+  )
+windows(width = 18, height = 18)
+phylum_legend <- data.frame(
+  Phylum = factor(
+    names(vibrant_phylum),
+    levels = names(vibrant_phylum)
+  ),
+  x = seq_along(vibrant_phylum),
+  y = rep(1, length(vibrant_phylum))
+)
+str(phylum_legend)
+p_phylum_legend <- ggplot2::ggplot(
+  phylum_legend,
+  ggplot2::aes(
+    x = x,
+    y = y,
+    colour = Phylum
+  )
+) +
+  ggplot2::geom_point(size = 4) +
+  
+  ggplot2::scale_colour_manual(
+    values = vibrant_phylum,
+    name = "Phylum"
+  ) +
+  
+  ggplot2::theme_void() +
+  
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      face = "bold",
+      size = 9
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 8
+    )
+  )
+windows(width = 8, height = 6)
+print(p_phylum_legend)
+install.packages("patchwork")
+library(patchwork)
+p_complete <- p_final_fitted +
+  p_phylum_legend +
+  patchwork::plot_layout(
+    widths = c(5, 1)
+  )
+windows(width = 19, height = 17)
+print(p_complete)
+p_phylum_legend <- p_phylum_legend +
+  ggplot2::guides(
+    colour = ggplot2::guide_legend(
+      title = "Phylum",
+      override.aes = list(size = 3),
+      keyheight = grid::unit(4, "mm"),
+      keywidth = grid::unit(4, "mm")
+    )
+  ) +
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      face = "bold",
+      size = 8
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      face = "plain",
+      size = 7
+    ),
+    
+    legend.spacing.y = grid::unit(1, "mm"),
+    legend.margin = ggplot2::margin(0, 0, 0, 0)
+  )
+p_complete <- p_final_fitted +
+  p_phylum_legend +
+  patchwork::plot_layout(
+    widths = c(6.5, 1)
+  )
+windows(width = 18, height = 17)
+print(p_complete)
+sample_key <- data.frame(
+  Track = paste0("Track ", 1:5),
+  Sample = c("DF_01", "DF_02", "DF_03", "DF_04", "DF_05")
+)
+sample_key
+levels = c("DF_01", "DF_02", "DF_03", "DF_04", "DF_05")
+track_text <- paste0(
+  "Abundance tracks\n",
+  "1  DF_01\n",
+  "2  DF_02\n",
+  "3  DF_03\n",
+  "4  DF_04\n",
+  "5  DF_05"
+)
+p_final_fitted <- p_final_fitted +
+  ggplot2::annotate(
+    "text",
+    x = -Inf,
+    y = -Inf,
+    label = track_text,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.6,
+    hjust = -0.2,
+    vjust = -0.2,
+    lineheight = 1.05,
+    colour = "black"
+  )
+p_complete <- p_final_fitted +
+  p_phylum_legend +
+  patchwork::plot_layout(
+    widths = c(6.5, 1)
+  )
+windows(width = 18, height = 17)
+print(p_complete)
+p_final_clean <- p_labels_fitted +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    offset = 0.18,
+    pwidth = 0.32,
+    width = 0.96,
+    colour = "white",
+    linewidth = 0.20,
+    axis.params = list(axis = "none")
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  ) +
+  
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.box.spacing =
+      grid::unit(2, "mm"),
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 8
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 7
+    ),
+    
+    plot.margin = ggplot2::margin(
+      3, 3, 3, 3,
+      unit = "mm"
+    )
+  )
+windows(width = 16, height = 15)
+print(p_final_clean)
+# ============================================================
+# DFU 16S CIRCULAR TAXONOMIC CLADOGRAM
+# Phylum sectors + Genus labels + 5-sample abundance tracks
+# ============================================================
+
+
+# ------------------------------------------------------------
+# 1. LOAD PACKAGES
+# ------------------------------------------------------------
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ape)
+library(igraph)
+library(ggplot2)
+library(ggtree)
+library(treeio)
+library(ggtreeExtra)
+library(ggnewscale)
+
+
+# Times New Roman for Windows
+windowsFonts(
+  TimesNewRoman = windowsFont("Times New Roman")
+)
+
+
+# ------------------------------------------------------------
+# 2. IMPORT DATA
+# ------------------------------------------------------------
+
+# Select raw_microbiome.xlsx(1).xlsx
+file_path <- file.choose()
+
+micro <- readxl::read_excel(file_path)
+
+# Check columns
+print(colnames(micro))
+
+
+# ------------------------------------------------------------
+# 3. EXTRACT TAXONOMIC RANKS
+# ------------------------------------------------------------
+
+tax_tree <- micro
+
+tax_tree$Phylum <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "p__[^;]+"
+)
+
+tax_tree$Class <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "c__[^;]+"
+)
+
+tax_tree$Order <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "o__[^;]+"
+)
+
+tax_tree$Family <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "f__[^;]+"
+)
+
+tax_tree$Genus <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "g__[^;]+"
+)
+
+
+# Remove prefixes
+
+tax_tree$Phylum <- sub("^p__", "", tax_tree$Phylum)
+tax_tree$Class  <- sub("^c__", "", tax_tree$Class)
+tax_tree$Order  <- sub("^o__", "", tax_tree$Order)
+tax_tree$Family <- sub("^f__", "", tax_tree$Family)
+tax_tree$Genus  <- sub("^g__", "", tax_tree$Genus)
+
+
+# ------------------------------------------------------------
+# 4. PREPARE TAXONOMIC HIERARCHY
+# ------------------------------------------------------------
+
+tree_tax <- tax_tree %>%
+  dplyr::select(
+    Phylum,
+    Class,
+    Order,
+    Family,
+    Genus
+  ) %>%
+  dplyr::filter(
+    !is.na(Phylum),
+    !is.na(Genus),
+    Genus != ""
+  ) %>%
+  dplyr::distinct()
+
+
+# Fill missing intermediate ranks
+
+tree_tax <- tree_tax %>%
+  dplyr::mutate(
+    
+    Class = ifelse(
+      is.na(Class) | Class == "",
+      "Unclassified_class",
+      Class
+    ),
+    
+    Order = ifelse(
+      is.na(Order) | Order == "",
+      "Unclassified_order",
+      Order
+    ),
+    
+    Family = ifelse(
+      is.na(Family) | Family == "",
+      "Unclassified_family",
+      Family
+    )
+  )
+
+
+# ------------------------------------------------------------
+# 5. CREATE UNIQUE TAXONOMIC NODE IDs
+# ------------------------------------------------------------
+
+tree_tax <- tree_tax %>%
+  dplyr::mutate(
+    
+    P = paste0(
+      "P:", Phylum
+    ),
+    
+    C = paste0(
+      "C:", Phylum, "|", Class
+    ),
+    
+    O = paste0(
+      "O:", Phylum, "|", Class, "|", Order
+    ),
+    
+    F = paste0(
+      "F:", Phylum, "|", Class, "|", Order, "|", Family
+    ),
+    
+    G = paste0(
+      "G:", Phylum, "|", Class, "|",
+      Order, "|", Family, "|", Genus
+    )
+  )
+
+
+# ------------------------------------------------------------
+# 6. CREATE TREE EDGES
+# ------------------------------------------------------------
+
+tree_edges <- dplyr::bind_rows(
+  
+  tree_tax %>%
+    dplyr::distinct(P, C) %>%
+    dplyr::transmute(
+      from = P,
+      to = C
+    ),
+  
+  tree_tax %>%
+    dplyr::distinct(C, O) %>%
+    dplyr::transmute(
+      from = C,
+      to = O
+    ),
+  
+  tree_tax %>%
+    dplyr::distinct(O, F) %>%
+    dplyr::transmute(
+      from = O,
+      to = F
+    ),
+  
+  tree_tax %>%
+    dplyr::distinct(F, G) %>%
+    dplyr::transmute(
+      from = F,
+      to = G
+    )
+  
+) %>%
+  dplyr::distinct()
+
+
+# Add central root
+
+root_edges <- data.frame(
+  from = "DFU_16S",
+  to = unique(tree_tax$P)
+)
+
+tree_edges <- dplyr::bind_rows(
+  root_edges,
+  tree_edges
+)
+
+
+# ------------------------------------------------------------
+# 7. CREATE SIMPLE TIP IDs
+# ------------------------------------------------------------
+
+tip_map <- tree_tax %>%
+  dplyr::distinct(
+    G,
+    Genus,
+    Phylum
+  ) %>%
+  dplyr::mutate(
+    tip_id = paste0(
+      "tip_",
+      sprintf(
+        "%03d",
+        dplyr::row_number()
+      )
+    )
+  )
+
+
+tip_meta <- tip_map %>%
+  dplyr::transmute(
+    label = tip_id,
+    Genus = Genus,
+    Phylum = Phylum
+  )
+
+
+# ------------------------------------------------------------
+# 8. CONVERT TAXONOMIC HIERARCHY TO NEWICK TREE
+# ------------------------------------------------------------
+
+children <- split(
+  tree_edges$to,
+  tree_edges$from
+)
+
+tip_lookup <- setNames(
+  tip_map$tip_id,
+  tip_map$G
+)
+
+
+make_newick <- function(node) {
+  
+  kids <- children[[node]]
+  
+  if (is.null(kids) || length(kids) == 0) {
+    
+    id <- unname(
+      tip_lookup[node]
+    )
+    
+    if (
+      length(id) == 0 ||
+      is.na(id)
+    ) {
+      
+      stop(
+        paste(
+          "Terminal node not found:",
+          node
+        )
+      )
+    }
+    
+    return(id)
+  }
+  
+  child_text <- vapply(
+    kids,
+    make_newick,
+    character(1)
+  )
+  
+  paste0(
+    "(",
+    paste(
+      child_text,
+      collapse = ","
+    ),
+    ")"
+  )
+}
+
+
+newick_text <- paste0(
+  make_newick("DFU_16S"),
+  ";"
+)
+
+
+phy <- ape::read.tree(
+  text = newick_text
+)
+
+
+cat(
+  "Number of tree tips:",
+  ape::Ntip(phy),
+  "\n"
+)
+
+cat(
+  "Number of metadata rows:",
+  nrow(tip_meta),
+  "\n"
+)
+
+
+# ------------------------------------------------------------
+# 9. FIND THE NODE REPRESENTING EACH PHYLUM
+# ------------------------------------------------------------
+
+phylum_nodes <- tip_meta %>%
+  dplyr::group_by(Phylum) %>%
+  dplyr::summarise(
+    
+    node = if (dplyr::n() == 1) {
+      
+      match(
+        label[1],
+        phy$tip.label
+      )
+      
+    } else {
+      
+      ape::getMRCA(
+        phy,
+        label
+      )
+    },
+    
+    .groups = "drop"
+  )
+
+
+print(phylum_nodes)
+
+
+# ------------------------------------------------------------
+# 10. PHYLUM COLORS
+# ------------------------------------------------------------
+
+vibrant_phylum <- c(
+  
+  "Actinobacteriota" = "#E76F73",
+  
+  "Bacteroidota" =
+    "#59B87A",
+  
+  "Firmicutes" =
+    "#7C83C9",
+  
+  "Fusobacteriota" =
+    "#E5B73B",
+  
+  "Proteobacteria" =
+    "#4FA3C7"
+)
+
+
+# ------------------------------------------------------------
+# 11. BASE CIRCULAR TAXONOMIC CLADOGRAM
+# ------------------------------------------------------------
+
+p_tree <- ggtree::ggtree(
+  
+  phy,
+  
+  layout = "fan",
+  
+  # Small opening on right side
+  open.angle = 25,
+  
+  linewidth = 0.50,
+  
+  colour = "black"
+  
+) %<+% tip_meta
+
+
+# ------------------------------------------------------------
+# 12. ADD COLORED PHYLUM SECTORS
+# ------------------------------------------------------------
+
+for (i in seq_len(nrow(phylum_nodes))) {
+  
+  ph <- as.character(
+    phylum_nodes$Phylum[i]
+  )
+  
+  nd <- phylum_nodes$node[i]
+  
+  if (
+    !is.na(nd) &&
+    ph %in% names(vibrant_phylum)
+  ) {
+    
+    p_tree <- p_tree +
+      
+      ggtree::geom_hilight(
+        
+        node = nd,
+        
+        fill =
+          vibrant_phylum[[ph]],
+        
+        alpha = 0.38,
+        
+        extend = 0.12
+      )
+  }
+}
+
+
+# Redraw tree branches over the colored sectors
+
+p_tree <- p_tree +
+  
+  ggtree::geom_tree(
+    linewidth = 0.48,
+    colour = "black"
+  )
+
+
+# ------------------------------------------------------------
+# 13. PREPARE GENUS ABUNDANCE
+# ------------------------------------------------------------
+
+genus_abund <- micro %>%
+  
+  dplyr::mutate(
+    
+    Genus = stringr::str_extract(
+      `#OTU ID`,
+      "g__[^;]+"
+    ),
+    
+    Genus = sub(
+      "^g__",
+      "",
+      Genus
+    )
+  ) %>%
+  
+  dplyr::filter(
+    !is.na(Genus),
+    Genus != ""
+  ) %>%
+  
+  dplyr::select(
+    Genus,
+    DF_01,
+    DF_02,
+    DF_03,
+    DF_04,
+    DF_05
+  ) %>%
+  
+  dplyr::group_by(Genus) %>%
+  
+  dplyr::summarise(
+    
+    dplyr::across(
+      
+      c(
+        DF_01,
+        DF_02,
+        DF_03,
+        DF_04,
+        DF_05
+      ),
+      
+      ~sum(
+        as.numeric(.x),
+        na.rm = TRUE
+      )
+    ),
+    
+    .groups = "drop"
+  )
+
+
+# ------------------------------------------------------------
+# 14. CONVERT ABUNDANCE TO LONG FORMAT
+# ------------------------------------------------------------
+
+fan_abund <- genus_abund %>%
+  
+  dplyr::inner_join(
+    
+    tip_map %>%
+      dplyr::select(
+        tip_id,
+        Genus
+      ),
+    
+    by = "Genus"
+  ) %>%
+  
+  tidyr::pivot_longer(
+    
+    cols = c(
+      DF_01,
+      DF_02,
+      DF_03,
+      DF_04,
+      DF_05
+    ),
+    
+    names_to = "Sample",
+    
+    values_to = "Abundance"
+  ) %>%
+  
+  dplyr::rename(
+    label = tip_id
+  )
+
+
+# Sample order
+
+fan_abund$Sample <- factor(
+  
+  fan_abund$Sample,
+  
+  levels = c(
+    "DF_01",
+    "DF_02",
+    "DF_03",
+    "DF_04",
+    "DF_05"
+  )
+)
+
+
+# Log transform only for visualization
+
+fan_abund$Abundance_plot <-
+  log10(
+    fan_abund$Abundance + 1
+  )
+
+
+fan_abund_plot <- fan_abund %>%
+  
+  dplyr::select(
+    label,
+    Sample,
+    Abundance,
+    Abundance_plot
+  )
+
+
+# ------------------------------------------------------------
+# 15. GET GENUS LABEL POSITIONS
+# ------------------------------------------------------------
+
+tip_pos <- p_tree$data %>%
+  
+  dplyr::filter(isTip) %>%
+  
+  dplyr::select(
+    label,
+    x,
+    y,
+    angle
+  ) %>%
+  
+  dplyr::left_join(
+    
+    tip_meta %>%
+      dplyr::select(
+        label,
+        Genus,
+        Phylum
+      ),
+    
+    by = "label"
+  )
+
+
+# ------------------------------------------------------------
+# 16. MOVE GENUS LABELS INSIDE THE CIRCLE
+# ------------------------------------------------------------
+
+label_radius <-
+  max(
+    tip_pos$x,
+    na.rm = TRUE
+  ) * 0.87
+
+
+tip_pos <- tip_pos %>%
+  
+  dplyr::mutate(
+    
+    label_x =
+      label_radius,
+    
+    label_angle =
+      angle,
+    
+    label_hjust =
+      dplyr::if_else(
+        
+        label_angle > 90 &
+          label_angle < 270,
+        
+        1,
+        
+        0
+      ),
+    
+    label_angle =
+      dplyr::if_else(
+        
+        label_angle > 90 &
+          label_angle < 270,
+        
+        label_angle + 180,
+        
+        label_angle
+      )
+  )
+
+
+# ------------------------------------------------------------
+# 17. DETERMINE WHICH LABELS SHOULD BE ITALIC
+# ------------------------------------------------------------
+
+tip_pos <- tip_pos %>%
+  
+  dplyr::mutate(
+    
+    italic_label = !grepl(
+      
+      paste(
+        "group",
+        "uncultured",
+        "unclassified",
+        "unknown",
+        "norank",
+        "metagenome",
+        "^[0-9]",
+        "DNF",
+        sep = "|"
+      ),
+      
+      Genus,
+      
+      ignore.case = TRUE
+    )
+  )
+
+
+# ------------------------------------------------------------
+# 18. ADD SMALL, CLEAR GENUS LABELS
+# ------------------------------------------------------------
+
+p_labels <- p_tree +
+  
+  # Non-italic labels
+  ggplot2::geom_text(
+    
+    data =
+      dplyr::filter(
+        tip_pos,
+        !italic_label
+      ),
+    
+    mapping =
+      ggplot2::aes(
+        x = label_x,
+        y = y,
+        label = Genus,
+        angle = label_angle,
+        hjust = label_hjust
+      ),
+    
+    inherit.aes = FALSE,
+    
+    family = "TimesNewRoman",
+    
+    fontface = "plain",
+    
+    size = 2.0,
+    
+    colour = "black"
+  ) +
+  
+  # Genus names
+  ggplot2::geom_text(
+    
+    data =
+      dplyr::filter(
+        tip_pos,
+        italic_label
+      ),
+    
+    mapping =
+      ggplot2::aes(
+        x = label_x,
+        y = y,
+        label = Genus,
+        angle = label_angle,
+        hjust = label_hjust
+      ),
+    
+    inherit.aes = FALSE,
+    
+    family = "TimesNewRoman",
+    
+    fontface = "italic",
+    
+    size = 2.0,
+    
+    colour = "black"
+  )
+
+
+# ------------------------------------------------------------
+# 19. ADD OUTER ABUNDANCE TRACKS
+# ------------------------------------------------------------
+
+p_final <- p_labels +
+  
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    
+    data =
+      fan_abund_plot,
+    
+    geom =
+      geom_tile,
+    
+    mapping =
+      ggplot2::aes(
+        
+        y = label,
+        
+        x = Sample,
+        
+        fill =
+          Abundance_plot
+      ),
+    
+    # Keep heatmap close to organism labels
+    offset = 0.16,
+    
+    # Width of five-track compartment
+    pwidth = 0.30,
+    
+    width = 0.96,
+    
+    colour = "white",
+    
+    linewidth = 0.18,
+    
+    axis.params =
+      list(
+        axis = "none"
+      )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    
+    name =
+      expression(
+        log[10](Abundance + 1)
+      )
+  )
+
+
+# ------------------------------------------------------------
+# 20. FINAL FIGURE FORMATTING
+# ------------------------------------------------------------
+
+p_final <- p_final +
+  
+  ggplot2::theme(
+    
+    legend.position = "right",
+    
+    legend.box.spacing =
+      grid::unit(
+        2,
+        "mm"
+      ),
+    
+    legend.title =
+      ggplot2::element_text(
+        
+        family =
+          "TimesNewRoman",
+        
+        face =
+          "plain",
+        
+        size = 8,
+        
+        colour =
+          "black"
+      ),
+    
+    legend.text =
+      ggplot2::element_text(
+        
+        family =
+          "TimesNewRoman",
+        
+        size = 7,
+        
+        colour =
+          "black"
+      ),
+    
+    plot.margin =
+      ggplot2::margin(
+        3,
+        3,
+        3,
+        3,
+        unit = "mm"
+      )
+  )
+
+
+# ------------------------------------------------------------
+# 21. PREVIEW
+# ------------------------------------------------------------
+
+windows(
+  width = 16,
+  height = 15
+)
+
+print(p_final)
+
+
+# ------------------------------------------------------------
+# 22. EXPORT 1200-DPI TIFF
+# ------------------------------------------------------------
+
+ggplot2::ggsave(
+  
+  filename =
+    "DFU_Circular_Cladogram_FINAL_1200dpi.tiff",
+  
+  plot =
+    p_final,
+  
+  width = 220,
+  
+  height = 210,
+  
+  units = "mm",
+  
+  dpi = 1200,
+  
+  compression = "lzw",
+  
+  bg = "white"
+)
+
+
+# ------------------------------------------------------------
+# 23. EXPORT VECTOR PDF
+# ------------------------------------------------------------
+
+ggplot2::ggsave(
+  
+  filename =
+    "DFU_Circular_Cladogram_FINAL_Vector.pdf",
+  
+  plot =
+    p_final,
+  
+  width = 220,
+  
+  height = 210,
+  
+  units = "mm",
+  
+  device = cairo_pdf,
+  
+  bg = "white"
+)
+
+
+# ------------------------------------------------------------
+# FINISHED
+# ------------------------------------------------------------
+
+cat(
+  "\nFigure successfully generated.\n",
+  "TIFF: DFU_Circular_Cladogram_FINAL_1200dpi.tiff\n",

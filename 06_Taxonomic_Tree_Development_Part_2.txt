@@ -1,0 +1,2124 @@
+                                    )
+                                  )                                  
+                                  p_publication <- p_pubtree +
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund_plot,
+                                      geom = geom_tile,
+                                      
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      
+                                      offset = 0.65,
+                                      pwidth = 0.20,
+                                      width = 0.94,
+                                      
+                                      colour = "white",
+                                      linewidth = 0.22,
+                                      
+                                      axis.params = list(
+                                        axis = "none"
+                                      )
+                                    ) +
+                                    
+                                    scale_fill_gradientn(
+                                      colours = c(
+                                        "#FAF8F6",
+                                        "#EADFEB",
+                                        "#DBC5E0",
+                                        "#C99BC8",
+                                        "#E5AE98",
+                                        "#F2D28A"
+                                      ),
+                                      name = expression(log[10](Abundance + 1))
+                                    )                                  
+                                  offset = 0.65                                  
+                                  pwidth = 0.20                                  
+                                  colour = "white"                                  
+                                  linewidth = 0.22                                  
+                                  p_publication <- p_publication +
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund_plot,
+                                      geom = geom_tile,
+                                      
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample
+                                      ),
+                                      
+                                      offset = 0.65,
+                                      pwidth = 0.20,
+                                      width = 0.94,
+                                      
+                                      fill = NA,
+                                      colour = "#FFFFFF",
+                                      linewidth = 0.28,
+                                      
+                                      axis.params = list(
+                                        axis = "none"
+                                      )
+                                    )                                  
+                                  p_publication <- p_publication +
+                                    theme(
+                                      legend.position = "right",
+                                      
+                                      legend.title = element_text(
+                                        size = 10,
+                                        face = "bold",
+                                        colour = "black"
+                                      ),
+                                      
+                                      legend.text = element_text(
+                                        size = 9,
+                                        colour = "black"
+                                      ),
+                                      
+                                      legend.background = element_blank(),
+                                      legend.key = element_blank(),
+                                      
+                                      plot.margin = margin(
+                                        12, 18, 12, 18,
+                                        unit = "mm"
+                                      )
+                                    ) +
+                                    
+                                    guides(
+                                      fill = guide_colourbar(
+                                        title.position = "top",
+                                        title.hjust = 0.5,
+                                        barwidth = unit(4, "mm"),
+                                        barheight = unit(32, "mm"),
+                                        frame.colour = "#555555",
+                                        frame.linewidth = 0.4,
+                                        ticks.colour = "#555555"
+                                      )
+                                    )                                  
+                                  windows(
+                                    width = 20,
+                                    height = 18
+                                  )                                  
+                                  print(p_publication)                                  
+                                  ggsave(
+                                    filename = "DFU_taxonomic_cladogram_PUBLICATION.pdf",
+                                    plot = p_publication,
+                                    width = 240,
+                                    height = 220,
+                                    units = "mm",
+                                    device = cairo_pdf,
+                                    bg = "white"
+                                  )                                  
+                                  ggsave(
+                                    filename = "DFU_taxonomic_cladogram_PUBLICATION_600dpi.tiff",
+                                    plot = p_publication,
+                                    width = 240,
+                                    height = 220,
+                                    units = "mm",
+                                    dpi = 600,
+                                    compression = "lzw",
+                                    bg = "white"
+                                  )                                  
+                                  p_final_base <- ggtree(
+                                    phy,
+                                    layout = "fan",
+                                    open.angle = 75,
+                                    linewidth = 0.50,
+                                    colour = "#222222"
+                                  ) %<+% tip_meta                                  
+                                  for (i in seq_len(nrow(phylum_nodes))) {
+                                    
+                                    ph <- as.character(phylum_nodes$Phylum[i])
+                                    nd <- phylum_nodes$node[i]
+                                    
+                                    if (!is.na(nd) && ph %in% names(pastel_phylum)) {
+                                      
+                                      p_final_base <- p_final_base +
+                                        ggtree::geom_hilight(
+                                          node = nd,
+                                          fill = pastel_phylum[[ph]],
+                                          alpha = 0.65,
+                                          extend = 0.05
+                                        )
+                                    }
+                                  }                                  
+                                  p_final_base <- p_final_base +
+                                    geom_tree(
+                                      linewidth = 0.50,
+                                      colour = "#222222"
+                                    )                                  
+                                  p_final_base <- p_final_base +
+                                    geom_tiplab2(
+                                      aes(label = Genus),
+                                      size = 3.4,
+                                      fontface = "italic",
+                                      colour = "black",
+                                      offset = 0.03,
+                                      align = FALSE
+                                    )                                  
+                                  p_final <- p_final_base +
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund_plot,
+                                      geom = geom_tile,
+                                      
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      
+                                      offset = 0.25,
+                                      pwidth = 0.18,
+                                      width = 0.96,
+                                      
+                                      colour = "white",
+                                      linewidth = 0.35,
+                                      
+                                      axis.params = list(
+                                        axis = "none"
+                                      )
+                                    ) +
+                                    
+                                    scale_fill_gradientn(
+                                      colours = c(
+                                        "#FAFAF8",
+                                        "#EEE3EE",
+                                        "#DBC5E0",
+                                        "#C99BC8",
+                                        "#E8AE96",
+                                        "#F3CF82"
+                                      ),
+                                      limits = c(
+                                        0,
+                                        max(fan_abund_plot$Abundance_plot, na.rm = TRUE)
+                                      ),
+                                      name = expression(log[10](Abundance + 1))
+                                    )                                  
+                                  p_final <- p_final +
+                                    theme(
+                                      legend.position = c(0.78, 0.43),
+                                      legend.justification = c(0.5, 0.5),
+                                      
+                                      legend.background = element_rect(
+                                        fill = "white",
+                                        colour = NA
+                                      ),
+                                      
+                                      legend.title = element_text(
+                                        size = 11,
+                                        face = "bold"
+                                      ),
+                                      
+                                      legend.text = element_text(
+                                        size = 10
+                                      ),
+                                      
+                                      plot.margin = margin(
+                                        8, 8, 8, 8,
+                                        unit = "mm"
+                                      )
+                                    ) +
+                                    
+                                    guides(
+                                      fill = guide_colourbar(
+                                        title.position = "top",
+                                        title.hjust = 0.5,
+                                        barwidth = unit(5, "mm"),
+                                        barheight = unit(35, "mm"),
+                                        frame.colour = "grey40",
+                                        ticks.colour = "grey40"
+                                      )
+                                    )                                  
+                                  sample_key <- data.frame(
+                                    x = c(5.3, 5.3, 5.3, 5.3, 5.3),
+                                    y = c(
+                                      0.80,
+                                      0.55,
+                                      0.30,
+                                      0.05,
+                                      -0.20
+                                    ),
+                                    Sample = c(
+                                      "DF_01",
+                                      "DF_02",
+                                      "DF_03",
+                                      "DF_04",
+                                      "DF_05"
+                                    )
+                                  )                                  
+                                  p_final <- p_final +
+                                    geom_text(
+                                      data = sample_key,
+                                      aes(
+                                        x = x,
+                                        y = y,
+                                        label = Sample
+                                      ),
+                                      inherit.aes = FALSE,
+                                      hjust = 0,
+                                      size = 4.2,
+                                      fontface = "bold",
+                                      colour = "black"
+                                    )                                  
+                                  windows(
+                                    width = 18,
+                                    height = 16
+                                  )
+                                  print(p_final)                                  
+                                  ggsave(
+                                    "DFU_taxonomic_cladogram_FINAL.pdf",
+                                    plot = p_final,
+                                    width = 190,
+                                    height = 180,
+                                    units = "mm",
+                                    device = cairo_pdf,
+                                    bg = "white"
+                                  )                                  
+                                  ggsave(
+                                    "DFU_taxonomic_cladogram_FINAL_600dpi.tiff",
+                                    plot = p_final,
+                                    width = 190,
+                                    height = 180,
+                                    units = "mm",
+                                    dpi = 600,
+                                    compression = "lzw",
+                                    bg = "white"
+                                  )                                  
+                                  p_inside <- ggtree(
+                                    phy,
+                                    layout = "fan",
+                                    open.angle = 80,
+                                    linewidth = 0.45,
+                                    colour = "#222222"
+                                  ) %<+% tip_meta                                  
+                                  for (i in seq_len(nrow(phylum_nodes))) {
+                                    
+                                    ph <- as.character(phylum_nodes$Phylum[i])
+                                    nd <- phylum_nodes$node[i]
+                                    
+                                    if (!is.na(nd) && ph %in% names(pastel_phylum)) {
+                                      
+                                      p_inside <- p_inside +
+                                        ggtree::geom_hilight(
+                                          node = nd,
+                                          fill = pastel_phylum[[ph]],
+                                          alpha = 0.60,
+                                          extend = 0.02
+                                        )
+                                    }
+                                  }                                  
+                                  p_inside <- p_inside +
+                                    geom_tree(
+                                      linewidth = 0.45,
+                                      colour = "#222222"
+                                    )                                  
+                                  p_inside <- p_inside +
+                                    geom_tiplab2(
+                                      aes(label = Genus),
+                                      size = 3.0,
+                                      fontface = "italic",
+                                      colour = "black",
+                                      offset = -0.18,
+                                      align = FALSE
+                                    )                                  
+                                  offset = -0.18                                  
+                                  windows(width = 18, height = 16)                                  
+                                  print(p_inside)                                  
+                                  p_inside_final <- p_inside +
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund_plot,
+                                      geom = geom_tile,
+                                      
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      
+                                      offset = 0.18,
+                                      pwidth = 0.24,
+                                      width = 0.96,
+                                      
+                                      colour = "white",
+                                      linewidth = 0.30,
+                                      
+                                      axis.params = list(
+                                        axis = "none"
+                                      )
+                                    ) +
+                                    
+                                    scale_fill_gradientn(
+                                      colours = c(
+                                        "#FCFAF8",
+                                        "#EEE5EF",
+                                        "#DFCBE3",
+                                        "#CFA9D1",
+                                        "#DEA1A5",
+                                        "#F0C17F"
+                                      ),
+                                      name = expression(log[10](Abundance + 1))
+                                    )                                  
+                                  p_inside_final <- p_inside_final +
+                                    theme(
+                                      legend.position = c(0.76, 0.42),
+                                      legend.justification = c(0.5, 0.5),
+                                      
+                                      legend.background = element_rect(
+                                        fill = "white",
+                                        colour = NA
+                                      ),
+                                      
+                                      legend.title = element_text(
+                                        size = 10,
+                                        face = "bold"
+                                      ),
+                                      
+                                      legend.text = element_text(
+                                        size = 9
+                                      ),
+                                      
+                                      plot.margin = margin(
+                                        8, 8, 8, 8,
+                                        unit = "mm"
+                                      )
+                                    ) +
+                                    
+                                    guides(
+                                      fill = guide_colourbar(
+                                        title.position = "top",
+                                        title.hjust = 0.5,
+                                        barwidth = unit(4, "mm"),
+                                        barheight = unit(30, "mm"),
+                                        frame.colour = "grey40"
+                                      )
+                                    )                                  
+                                  windows(width = 18, height = 16)                                  
+                                  print(p_inside_final)                                  
+                                  offset = -0.18                                  
+                                  offset = -0.25                                  
+                                  ggsave(
+                                    "DFU_taxonomic_cladogram_inside_labels.pdf",
+                                    p_inside_final,
+                                    width = 200,
+                                    height = 190,
+                                    units = "mm",
+                                    device = cairo_pdf,
+                                    bg = "white"
+                                  )                                  
+                                  ggsave(
+                                    "DFU_taxonomic_cladogram_inside_labels_600dpi.tiff",
+                                    p_inside_final,
+                                    width = 200,
+                                    height = 190,
+                                    units = "mm",
+                                    dpi = 600,
+                                    compression = "lzw",
+                                    bg = "white"
+                                  )                                  
+                                  tip_meta <- tip_map %>%
+                                    dplyr::transmute(
+                                      label = tip_id,
+                                      Genus = Genus,
+                                      Phylum = Phylum
+                                    )                                  
+                                  tip_meta <- tip_map %>%
+                                    dplyr::transmute(
+                                      label = tip_id,
+                                      Genus = Genus,
+                                      Phylum = Phylum
+                                    )                                  
+                                  head(tip_meta)                                  
+                                  nrow(tip_meta)                                  
+                                  ape::Ntip(phy)                                  
+                                  tip_meta %>%
+                                    dplyr::filter(
+                                      grepl("Solobacterium", Genus, ignore.case = TRUE)
+                                    )                                  
+                                  p_ref <- ggtree::ggtree(
+                                    phy,
+                                    layout = "fan",
+                                    open.angle = 25,
+                                    linewidth = 0.55,
+                                    colour = "black"
+                                  ) %<+% tip_meta                                  
+                                  windows(width = 16, height = 16)                                  
+                                  print(p_ref)                                  
+                                  pastel_phylum <- c(
+                                    "Actinobacteriota" = "#F4D6D6",
+                                    "Bacteroidota"     = "#D8EBD5",
+                                    "Firmicutes"       = "#D9D8EC",
+                                    "Fusobacteriota"   = "#F4E3B5",
+                                    "Proteobacteria"   = "#CFE2EC"
+                                  )                                  
+                                  exists("phylum_nodes")                                  
+                                  p_ref_colored <- p_ref                                  
+                                  for (i in seq_len(nrow(phylum_nodes))) {
+                                    
+                                    ph <- as.character(phylum_nodes$Phylum[i])
+                                    nd <- phylum_nodes$node[i]
+                                    
+                                    if (!is.na(nd) && ph %in% names(pastel_phylum)) {
+                                      
+                                      p_ref_colored <- p_ref_colored +
+                                        ggtree::geom_hilight(
+                                          node = nd,
+                                          fill = pastel_phylum[[ph]],
+                                          alpha = 0.55,
+                                          extend = 0.15
+                                        )
+                                    }
+                                  }                                  
+                                  p_ref_colored <- p_ref_colored +
+                                    ggtree::geom_tree(
+                                      linewidth = 0.55,
+                                      colour = "black"
+                                    )                                  
+                                  windows(width = 16, height = 16)                                  
+                                  print(p_ref_colored)                                  
+                                  p_ref_labels <- p_ref_colored +
+                                    ggtree::geom_tiplab2(
+                                      aes(label = Genus),
+                                      size = 2.5,
+                                      fontface = "italic",
+                                      colour = "black",
+                                      offset = -0.35,
+                                      align = FALSE
+                                    )
+                                  windows(width = 17, height = 17)                                  
+                                  print(p_ref_labels)                                  
+                                  p_ref_labels <- p_ref_colored +
+                                    ggtree::geom_tiplab2(
+                                      aes(label = Genus),
+                                      size = 2.5,
+                                      fontface = "italic",
+                                      colour = "black",
+                                      offset = -0.50,
+                                      align = FALSE
+                                    )
+                                  print(p_ref_labels)                                  
+                                  fan_abund_plot <- fan_abund %>%
+                                    dplyr::select(
+                                      label,
+                                      Sample,
+                                      Abundance,
+                                      Abundance_plot
+                                    )                                                  
+                                  fan_abund_plot$Sample <- factor(
+                                    fan_abund_plot$Sample,
+                                    levels = c("DF_01", "DF_02", "DF_03", "DF_04", "DF_05")
+                                  )                                  
+                                  p_ref_ring <- p_ref_labels +
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund_plot,
+                                      geom = geom_tile,
+                                      
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      
+                                      # small separation from the taxonomic sector
+                                      offset = 0.06,
+                                      
+                                      # visible but compact outer band
+                                      pwidth = 0.13,
+                                      
+                                      width = 0.94,
+                                      
+                                      # clear separation between cells
+                                      colour = "white",
+                                      linewidth = 0.25,
+                                      
+                                      axis.params = list(
+                                        axis = "none"
+                                      )
+                                    ) +
+                                    
+                                    scale_fill_gradientn(
+                                      colours = c(
+                                        "#F7F7F7",
+                                        "#E8DFEB",
+                                        "#D8C3DE",
+                                        "#C79AC5",
+                                        "#DFA28F",
+                                        "#EFC77E"
+                                      ),
+                                      name = expression(log[10](Abundance + 1))
+                                    )                                  
+                                  p_ref_ring <- p_ref_ring +
+                                    theme(
+                                      legend.position = c(0.76, 0.27),
+                                      legend.justification = c(0.5, 0.5),
+                                      
+                                      legend.background = element_rect(
+                                        fill = "white",
+                                        colour = NA
+                                      ),
+                                      
+                                      legend.title = element_text(
+                                        size = 9,
+                                        face = "bold"
+                                      ),
+                                      
+                                      legend.text = element_text(size = 8),
+                                      
+                                      plot.margin = margin(
+                                        5, 5, 5, 5,
+                                        unit = "mm"
+                                      )
+                                    ) +
+                                    
+                                    guides(
+                                      fill = guide_colourbar(
+                                        title.position = "top",
+                                        title.hjust = 0.5,
+                                        barwidth = unit(4, "mm"),
+                                        barheight = unit(28, "mm"),
+                                        frame.colour = "grey40"
+                                      )
+                                    )                                  
+                                  windows(width = 17, height = 17)                                  
+                                  print(p_ref_ring)                                  
+                                  exists("p_ref_colored")                                  
+                                  tip_pos <- p_ref_colored$data %>%
+                                    dplyr::filter(isTip) %>%
+                                    dplyr::select(
+                                      label,
+                                      x,
+                                      y,
+                                      angle
+                                    ) %>%
+                                    dplyr::left_join(
+                                      tip_meta %>%
+                                        dplyr::select(label, Genus, Phylum),
+                                      by = "label"
+                                    )                                  
+                                  head(tip_pos)                                  
+                                  label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.78                                  
+                                  tip_pos <- tip_pos %>%
+                                    dplyr::mutate(
+                                      label_x = label_radius,
+                                      
+                                      label_angle = angle,
+                                      
+                                      label_hjust = dplyr::if_else(
+                                        label_angle > 90 & label_angle < 270,
+                                        1,
+                                        0
+                                      ),
+                                      
+                                      label_angle = dplyr::if_else(
+                                        label_angle > 90 & label_angle < 270,
+                                        label_angle + 180,
+                                        label_angle
+                                      )
+                                    )                                  
+                                  p_fixedlabels <- p_ref_colored +
+                                    geom_text(
+                                      data = tip_pos,
+                                      aes(
+                                        x = label_x,
+                                        y = y,
+                                        label = Genus,
+                                        angle = label_angle,
+                                        hjust = label_hjust
+                                      ),
+                                      inherit.aes = FALSE,
+                                      size = 2.6,
+                                      fontface = "italic",
+                                      colour = "black"
+                                    )                                  
+                                  windows(width = 17, height = 17)                                  
+                                  print(p_fixedlabels)                                  
+                                  geom_tiplab2(... offset = -0.35)                                  
+                                  geom_tiplab2(... offset = -0.50)                                  
+                                  # publication-style separation
+                                  colour = "white",
+                                  linewidth = 0.25,
+                                  
+                                  axis.params = list(
+                                    axis = "none"
+                                  )
+                          ) +
+                            
+                            scale_fill_gradientn(
+                              colours = c(
+                                "#FAFAFA",
+                                "#EEE8F0",
+                                "#DCCDE2",
+                                "#CBA9D0",
+                                "#DFA5A0",
+                                "#EFC781"
+                              ),
+                              name = expression(log[10](Abundance + 1))
+                            )                                  
+                          # publication-style separation                          
+                          colour = "white",
+                          linewidth = 0.25,
+                          
+                          axis.params = list(
+                            axis = "none"
+                          )
+                    ) +
+                    
+                    scale_fill_gradientn(
+                      colours = c(
+                        "#FAFAFA",
+                        "#EEE8F0",
+                        "#DCCDE2",
+                        "#CBA9D0",
+                        "#DFA5A0",
+                        "#EFC781"
+                      ),
+                      name = expression(log[10](Abundance + 1))
+                    )                          
+                  p_fixed_ring <- p_fixed_ring +
+                    theme(
+                      legend.position = c(0.79, 0.25),
+                      legend.justification = c(0.5, 0.5),
+                      
+                      legend.background = element_rect(
+                        fill = "white",
+                        colour = NA
+                      ),
+                      
+                      legend.title = element_text(
+                        size = 9,
+                        face = "bold"
+                      ),
+                      
+                      legend.text = element_text(size = 8),
+                      
+                      plot.margin = margin(
+                        5, 5, 5, 5,
+                        unit = "mm"
+                      )
+                    ) +
+                    
+                    guides(
+                      fill = guide_colourbar(
+                        title.position = "top",
+                        title.hjust = 0.5,
+                        barwidth = unit(4, "mm"),
+                        barheight = unit(27, "mm"),
+                        frame.colour = "grey40"
+                      )
+                    )                  
+                  windows(width = 17, height = 17)                  
+                  print(p_fixed_ring)                  
+                  exists("p_fixedlabels")
+                  p_fixed_ring <- p_fixedlabels +
+                    ggnewscale::new_scale_fill() +
+                    ggtreeExtra::geom_fruit(
+                      data = fan_abund_plot,
+                      geom = geom_tile,
+                      mapping = aes(
+                        y = label,
+                        x = Sample,
+                        fill = Abundance_plot
+                      ),
+                      offset = 0.08,
+                      pwidth = 0.14,
+                      width = 0.92,
+                      colour = "white",
+                      linewidth = 0.25,
+                      axis.params = list(
+                        axis = "none"
+                      )
+                    ) +
+                    scale_fill_gradientn(
+                      colours = c(
+                        "#FAFAFA",
+                        "#EEE8F0",
+                        "#DCCDE2",
+                        "#CBA9D0",
+                        "#DFA5A0",
+                        "#EFC781"
+                      ),
+                      name = expression(log[10](Abundance + 1))
+                    )                  
+                  exists("p_fixed_ring")                  
+                  p_fixed_ring <- p_fixed_ring +
+                    theme(
+                      legend.position = c(0.79, 0.25),
+                      legend.justification = c(0.5, 0.5),
+                      legend.background = element_rect(
+                        fill = "white",
+                        colour = NA
+                      ),
+                      legend.title = element_text(
+                        size = 9,
+                        face = "bold"
+                      ),
+                      legend.text = element_text(
+                        size = 8
+                      ),
+                      plot.margin = margin(
+                        5, 5, 5, 5,
+                        unit = "mm"
+                      )
+                    )                  
+                  windows(width = 17, height = 17)                  
+                  print(p_fixed_ring)                  
+                  vibrant_phylum <- c(
+                    "Actinobacteriota" = "#E76F73",
+                    "Bacteroidota"     = "#59B87A",
+                    "Firmicutes"       = "#7C83C9",
+                    "Fusobacteriota"   = "#E5B73B",
+                    "Proteobacteria"   = "#4FA3C7"
+                  )                  
+                  p_vibrant <- p_ref
+                  for (i in seq_len(nrow(phylum_nodes))) {
+                    
+                    ph <- as.character(phylum_nodes$Phylum[i])
+                    nd <- phylum_nodes$node[i]
+                    
+                    if (!is.na(nd) && ph %in% names(vibrant_phylum)) {
+                      
+                      p_vibrant <- p_vibrant +
+                        ggtree::geom_hilight(
+                          node = nd,
+                          fill = vibrant_phylum[[ph]],
+                          alpha = 0.38,
+                          extend = 0.12
+                        )
+                    }
+                  }                  
+                  p_vibrant <- p_vibrant +
+                    ggtree::geom_tree(
+                      linewidth = 0.50,
+                      colour = "black"
+                    )                  
+                  exists("p_ref")
+                  p_vibrant <- p_ref                  
+                  exists("p_vibrant")                  
+                  vibrant_phylum <- c(
+                    "Actinobacteriota" = "#E76F73",
+                    "Bacteroidota"     = "#59B87A",
+                    "Firmicutes"       = "#7C83C9",
+                    "Fusobacteriota"   = "#E5B73B",
+                    "Proteobacteria"   = "#4FA3C7"
+                  )                  
+                  for (i in seq_len(nrow(phylum_nodes))) {
+                    
+                    ph <- as.character(phylum_nodes$Phylum[i])
+                    nd <- phylum_nodes$node[i]
+                    
+                    if (!is.na(nd) && ph %in% names(vibrant_phylum)) {
+                      
+                      p_vibrant <- p_vibrant +
+                        ggtree::geom_hilight(
+                          node = nd,
+                          fill = vibrant_phylum[[ph]],
+                          alpha = 0.38,
+                          extend = 0.12
+                        )
+                    }
+                  }                  
+                  p_vibrant <- p_vibrant +
+                    ggtree::geom_tree(
+                      linewidth = 0.50,
+                      colour = "black"
+                    )                  
+                  windows(width = 17, height = 17)
+                  print(p_vibrant)                  
+                  tip_pos <- p_vibrant$data %>%
+                    dplyr::filter(isTip) %>%
+                    dplyr::select(label, x, y, angle) %>%
+                    dplyr::left_join(
+                      tip_meta %>%
+                        dplyr::select(label, Genus, Phylum),
+                      by = "label"
+                    )              
+                  head(tip_pos)                  
+                  label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.72                  
+                  tip_pos <- tip_pos %>%
+                    dplyr::mutate(
+                      label_x = label_radius,
+                      label_angle = angle,
+                      
+                      label_hjust = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        1,
+                        0
+                      ),
+                      
+                      label_angle = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        label_angle + 180,
+                        label_angle
+                      )
+                    )                  
+                  p_vibrant_labels <- p_vibrant +
+                    ggplot2::geom_text(
+                      data = tip_pos,
+                      mapping = ggplot2::aes(
+                        x = label_x,
+                        y = y,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = label_hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 2.0,
+                      fontface = "italic",
+                      colour = "black"
+                    )                  
+                  windows(width = 18, height = 18)                  
+                  print(p_vibrant_labels)                  
+                  tip_pos <- p_vibrant$data %>%
+                    dplyr::filter(isTip) %>%
+                    dplyr::select(label, x, y, angle) %>%
+                    dplyr::left_join(
+                      tip_meta %>%
+                        dplyr::select(label, Genus, Phylum),
+                      by = "label"
+                    )                  
+                  head(tip_pos)                  
+                  label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.72                  
+                  tip_pos <- tip_pos %>%
+                    dplyr::mutate(
+                      label_x = label_radius,
+                      label_angle = angle,
+                      
+                      label_hjust = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        1,
+                        0
+                      ),
+                      
+                      label_angle = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        label_angle + 180,
+                        label_angle
+                      )
+                    )                  
+                  p_vibrant_labels <- p_vibrant +
+                    ggplot2::geom_text(
+                      data = tip_pos,
+                      mapping = ggplot2::aes(
+                        x = label_x,
+                        y = y,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = label_hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 2.0,
+                      fontface = "italic",
+                      colour = "black"
+                    )                  
+                  windows(width = 18, height = 18)                  
+                  print(p_vibrant_labels)                  
+                  label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.80                  
+                  tip_pos <- tip_pos %>%
+                    dplyr::mutate(
+                      label_x = label_radius,
+                      label_angle = angle,
+                      
+                      label_hjust = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        1,
+                        0
+                      ),
+                      
+                      label_angle = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        label_angle + 180,
+                        label_angle
+                      )
+                    )                  
+                  p_vibrant_labels <- p_vibrant +
+                    ggplot2::geom_text(
+                      data = tip_pos,
+                      mapping = ggplot2::aes(
+                        x = label_x,
+                        y = y,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = label_hjust
+                      ),
+                      inherit.aes = FALSE,
+                      
+                      size = 2.5,
+                      fontface = "bold.italic",
+                      family = "sans",
+                      colour = "black"
+                    )                  
+                  windows(width = 20, height = 20)                  
+                  print(p_vibrant_labels)                  
+                  p_outer <- p_vibrant_labels +
+                    ggnewscale::new_scale_fill() +
+                    
+                    ggtreeExtra::geom_fruit(
+                      data = fan_abund_plot,
+                      geom = geom_tile,
+                      
+                      mapping = aes(
+                        y = label,
+                        x = Sample,
+                        fill = Abundance_plot
+                      ),
+                      
+                      offset = 0.12,
+                      pwidth = 0.32,
+                      width = 0.96,
+                      
+                      colour = "white",
+                      linewidth = 0.35,
+                      
+                      axis.params = list(
+                        axis = "none"
+                      )
+                    ) +
+                    
+                    scale_fill_gradientn(
+                      colours = c(
+                        "#FFF7EC",
+                        "#FDD49E",
+                        "#FC8D59",
+                        "#D7301F",
+                        "#7F0000"
+                      ),
+                      name = expression(log[10](Abundance + 1))
+                    )                  
+                  p_outer <- p_outer +
+                    theme(
+                      legend.position = c(0.79, 0.23),
+                      legend.justification = c(0.5, 0.5),
+                      
+                      legend.background = element_rect(
+                        fill = "white",
+                        colour = "grey60",
+                        linewidth = 0.3
+                      ),
+                      
+                      legend.title = element_text(
+                        size = 9,
+                        face = "bold"
+                      ),
+                      
+                      legend.text = element_text(
+                        size = 8
+                      ),
+                      
+                      plot.margin = margin(
+                        8, 8, 8, 8,
+                        unit = "mm"
+                      )
+                    )                  
+                  windows(width = 20, height = 20)                  
+                  print(p_outer)                  
+                  print(p_outer)                  
+                  p_final <- p_outer +
+                    labs(
+                      caption = "Outer abundance tracks: DF_01  |  DF_02  |  DF_03  |  DF_04  |  DF_05"
+                    ) +
+                    theme(
+                      plot.caption = element_text(
+                        size = 10,
+                        face = "bold",
+                        hjust = 0.5,
+                        margin = margin(t = 8)
+                      )
+                    )                  
+                  windows(width = 20, height = 20)                  
+                  print(p_final)                  
+                  phylum_legend <- ggplot2::ggplot(
+                    data.frame(
+                      Phylum = names(vibrant_phylum),
+                      x = 1,
+                      y = seq_along(vibrant_phylum)
+                    ),
+                    aes(x = x, y = y, fill = Phylum)
+                  ) +
+                    geom_tile(width = 0.45, height = 0.45) +
+                    scale_fill_manual(
+                      values = vibrant_phylum,
+                      name = "Phylum"
+                    ) +
+                    guides(
+                      fill = guide_legend(
+                        title.position = "top",
+                        title.hjust = 0,
+                        override.aes = list(
+                          alpha = 0.7
+                        )
+                      )
+                    ) +
+                    theme_void() +
+                    theme(
+                      legend.position = "right",
+                      legend.title = element_text(
+                        size = 10,
+                        face = "bold"
+                      ),
+                      legend.text = element_text(
+                        size = 9
+                      )
+                    )                  
+                  windows(width = 6, height = 5)                  
+                  print(phylum_legend)                  
+                  library(patchwork)                  
+                  install.packages("patchwork")                  
+                  library(patchwork)                  
+                  p_publication <- p_final +
+                    phylum_legend +
+                    patchwork::plot_layout(
+                      widths = c(5.5, 1)
+                    )                  
+                  windows(width = 22, height = 18)                  
+                  print(p_publication)                  
+                  label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.88                  
+                  label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.88                  
+                  tip_pos <- tip_pos %>%
+                    dplyr::mutate(
+                      label_x = label_radius,
+                      label_angle = angle,
+                      
+                      label_hjust = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        1,
+                        0
+                      ),
+                      
+                      label_angle = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        label_angle + 180,
+                        label_angle
+                      )
+                    )                  
+                  liblibrary(dplyr)
+                  library(dplyr)
+                  "%>%" %in% getNamespaceExports("dplyr")                  
+                  label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.88                  
+                  tip_pos <- tip_pos %>%
+                    dplyr::mutate(
+                      label_x = label_radius,
+                      label_angle = angle,
+                      label_hjust = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        1,
+                        0
+                      ),
+                      label_angle = dplyr::if_else(
+                        label_angle > 90 & label_angle < 270,
+                        label_angle + 180,
+                        label_angle
+                      )
+                    )                  
+                  tip_pos <- dplyr::mutate(
+                    tip_pos,
+                    label_x = label_radius,
+                    label_angle = angle,
+                    label_hjust = dplyr::if_else(
+                      label_angle > 90 & label_angle < 270,
+                      1,
+                      0
+                    ),
+                    label_angle = dplyr::if_else(
+                      label_angle > 90 & label_angle < 270,
+                      label_angle + 180,
+                      label_angle
+                    )
+                  )                  
+                  p_vibrant_labels <- p_vibrant +
+                    ggplot2::geom_text(
+                      data = tip_pos,
+                      mapping = ggplot2::aes(
+                        x = label_x,
+                        y = y,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = label_hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 2.3,
+                      fontface = "italic",
+                      family = "sans",
+                      colour = "black"
+                    )                  
+                  windows(width = 20, height = 20)                  
+                  print(p_vibrant_labels)                  
+                  p_outer <- p_vibrant_labels +
+                    ggnewscale::new_scale_fill() +
+                    
+                    ggtreeExtra::geom_fruit(
+                      data = fan_abund_plot,
+                      geom = geom_tile,
+                      
+                      mapping = aes(
+                        y = label,
+                        x = Sample,
+                        fill = Abundance_plot
+                      ),
+                      
+                      # larger clear space after organism names
+                      offset = 0.18,
+                      
+                      # broad outer abundance compartment
+                      pwidth = 0.34,
+                      
+                      width = 0.96,
+                      
+                      colour = "white",
+                      linewidth = 0.30,
+                      
+                      axis.params = list(
+                        axis = "none"
+                      )
+                    ) +
+                    
+                    scale_fill_gradientn(
+                      colours = c(
+                        "#FFF7EC",
+                        "#FDD49E",
+                        "#FC8D59",
+                        "#EF6548",
+                        "#B30000"
+                      ),
+                      name = expression(log[10](Abundance + 1))
+                    )                  
+                  p_outer <- p_outer +
+                    theme(
+                      legend.position = "right",
+                      
+                      legend.title = element_text(
+                        size = 9,
+                        face = "bold"
+                      ),
+                      
+                      legend.text = element_text(
+                        size = 8
+                      ),
+                      
+                      legend.background = element_rect(
+                        fill = "white",
+                        colour = "grey70",
+                        linewidth = 0.3
+                      ),
+                      
+                      plot.margin = margin(
+                        8, 12, 8, 8,
+                        unit = "mm"
+                      )
+                    )                
+                  windows(width = 22, height = 20)                  
+                  print(p_outer)                  
+                  p_vibrant_labels <- p_vibrant +
+                    ggplot2::geom_text(
+                      data = tip_pos,
+                      mapping = ggplot2::aes(
+                        x = label_x,
+                        y = y,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = label_hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 1.9,
+                      fontface = "italic",
+                      family = "sans",
+                      colour = "black"
+                    )                 
+                  p_outer <- p_outer +
+                    theme(
+                      legend.position = "right",
+                      legend.justification = "center",
+                      
+                      legend.box.margin = margin(
+                        t = 0,
+                        r = 5,
+                        b = 0,
+                        l = 18,
+                        unit = "mm"
+                      ),
+                      
+                      legend.title = element_text(
+                        size = 8,
+                        face = "bold"
+                      ),
+                      
+                      legend.text = element_text(
+                        size = 7
+                      ),
+                      
+                      plot.margin = margin(
+                        8, 25, 8, 8,
+                        unit = "mm"
+                      )
+                    )                 
+                  library(ggplot2)                 
+                  p_outer <- p_outer +
+                    ggplot2::theme(
+                      legend.position = "right",
+                      legend.justification = "center",
+                      
+                      legend.box.margin = ggplot2::margin(
+                        t = 0,
+                        r = 5,
+                        b = 0,
+                        l = 18,
+                        unit = "mm"
+                      ),
+                      
+                      legend.title = ggplot2::element_text(
+                        size = 8,
+                        face = "bold"
+                      ),
+                      
+                      legend.text = ggplot2::element_text(
+                        size = 7
+                      ),
+                      
+                      plot.margin = ggplot2::margin(
+                        8, 25, 8, 8,
+                        unit = "mm"
+                      )
+                    )                  
+                  windows(width = 22, height = 18)                  
+                  print(p_outer)                  
+                  windowsFonts()
+                  windowsFonts(
+                    TimesNewRoman = windowsFont("Times New Roman")
+                  )                 
+                  label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.91                  
+                  tip_pos <- dplyr::mutate(
+                    tip_pos,
+                    label_x = label_radius,
+                    label_angle = angle,
+                    
+                    label_hjust = dplyr::if_else(
+                      label_angle > 90 & label_angle < 270,
+                      1,
+                      0
+                    ),
+                    
+                    label_angle = dplyr::if_else(
+                      label_angle > 90 & label_angle < 270,
+                      label_angle + 180,
+                      label_angle
+                    )
+                  )                  
+                  p_vibrant_labels <- p_vibrant +
+                    ggplot2::geom_text(
+                      data = tip_pos,
+                      mapping = ggplot2::aes(
+                        x = label_x,
+                        y = y,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = label_hjust
+                      ),
+                      inherit.aes = FALSE,
+                      
+                      family = "TimesNewRoman",
+                      fontface = "italic",
+                      size = 2.1,
+                      colour = "black",
+                      lineheight = 0.9
+                    )                  
+                  family = "TimesNewRoman"                  
+                  fontface = "italic"                  
+                  size = 2.1                  
+                  windows(width = 20, height = 20)                  
+                  print(p_vibrant_labels)                  
+                  pwidth = 0.34,
+                  width = 0.96,
+                  
+                  colour = "white",
+                  linewidth = 0.30,
+                  
+                  axis.params = list(
+                    axis = "none"
+                  )
+                ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  )                  
+p_outer <- p_outer +
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.box.margin = ggplot2::margin(
+      t = 0,
+      r = 4,
+      b = 0,
+      l = 20,
+      unit = "mm"
+    ),
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 9,
+      face = "plain"
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 8
+    ),
+    
+    plot.margin = ggplot2::margin(
+      8, 25, 8, 8,
+      unit = "mm"
+    )
+  )
+windows(width = 22, height = 20)
+print(p_outer)
+tip_pos <- tip_pos %>%
+  dplyr::mutate(
+    italic_label = !grepl(
+      "group|uncultured|unclassified|unknown|norank|metagenome|^[0-9]|DNF",
+      Genus,
+      ignore.case = TRUE
+    )
+  )
+tip_pos %>%
+  dplyr::filter(!italic_label) %>%
+  dplyr::select(Genus)
+p_labels_final <- p_vibrant +
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(!italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.1,
+    colour = "black"
+  )
+p_labels_final <- p_labels_final +
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "italic",
+    size = 2.1,
+    colour = "black"
+  )
+windows(width = 20, height = 20)
+print(p_labels_final)
+p_labels_final <- p_vibrant +
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(!italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.8,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "italic",
+    size = 2.8,
+    colour = "black"
+  )
+windows(width = 24, height = 24)
+print(p_labels_final)
+library(ggplot2)
+windowsFonts(
+  TimesNewRoman = windowsFont("Times New Roman")
+)
+p_labels_final <- p_vibrant +
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(!italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.6,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "italic",
+    size = 2.6,
+    colour = "black"
+  ) 
+p_final <- p_labels_final +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = ggplot2::geom_tile,
+    
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    offset = 0.20,
+    pwidth = 0.34,
+    width = 0.96,
+    
+    colour = "white",
+    linewidth = 0.25,
+    
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FDAE6B",
+      "#F16913",
+      "#D94801",
+      "#8C2D04"
+    ),
+    name = expression(log[10](Abundance + 1))
+  )
+p_labels_final <- p_vibrant +
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(!italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.6,
+    colour = "black"
+  ) +
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "italic",
+    size = 2.6,
+    colour = "black"
+  )
+ggplot2::ggsave(
+  "DFU_Circular_Cladogram_600dpi.tiff",
+  plot = p_final,
+  width = 10,
+  height = 10,
+  units = "in",
+  dpi = 600,
+  compression = "lzw",
+  bg = "white"
+)
+ggplot2::ggsave(
+  "DFU_Circular_Cladogram_Vector.pdf",
+  plot = p_final,
+  width = 10,
+  height = 10,
+  units = "in",
+  device = cairo_pdf,
+  bg = "white"
+)
+p_final <- p_labels_final +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = ggplot2::geom_tile,
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    offset = 0.20,
+    pwidth = 0.34,
+    width = 0.96,
+    
+    colour = "white",
+    linewidth = 0.30,
+    
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  ) +
+  
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.box.margin = ggplot2::margin(
+      0, 5, 0, 15,
+      unit = "mm"
+    ),
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 10,
+      colour = "black"
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 9,
+      colour = "black"
+    ),
+    
+    plot.margin = ggplot2::margin(
+      8, 20, 8, 8,
+      unit = "mm"
+    )
+  )
+windows(width = 22, height = 20)
+print(p_final)
+geom = ggplot2::geom_tile
+geom = geom_tile
+library(ggplot2)
+library(ggtreeExtra)
+library(ggnewscale)
+p_final <- p_labels_final +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    offset = 0.20,
+    pwidth = 0.34,
+    width = 0.96,
+    
+    colour = "white",
+    linewidth = 0.30,
+    
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  )
+p_final <- p_final +
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.box.margin = ggplot2::margin(
+      0, 5, 0, 15,
+      unit = "mm"
+    ),
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 10,
+      colour = "black"
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 9,
+      colour = "black"
+    ),
+    
+    plot.margin = ggplot2::margin(
+      8, 20, 8, 8,
+      unit = "mm"
+    )
+  )
+windows(width = 22, height = 20)
+print(p_final)
+geom = geom_tile
+geom = ggplot2::geom_tile
+p_labels_bold <- p_vibrant +
+  
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(!italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "bold",
+    size = 3.2,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "bold.italic",
+    size = 3.2,
+    colour = "black"
+  )
+windows(width = 22, height = 22)
+print(p_labels_bold)
+p_final_bold <- p_labels_bold +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    offset = 0.22,
+    pwidth = 0.34,
+    width = 0.96,
+    
+    colour = "white",
+    linewidth = 0.30,
+    
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  ) +
+  
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      face = "bold",
+      size = 11
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      face = "bold",
+      size = 9
+    ),
+    
+    plot.margin = ggplot2::margin(
+      8, 20, 8, 8,
+      unit = "mm"
+    )
+  )
+windows(width = 24, height = 22)
+print(p_final_bold)
+p_labels_bold <- p_vibrant +
+  
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(!italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "bold",
+    size = 2.6,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = tip_pos %>% dplyr::filter(italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "bold.italic",
+    size = 2.6,
+    colour = "black"
+  )
+windows(width = 16, height = 16)
+print(p_labels_bold)
+print(p_labels_bold)
+print(p_labels_bold)
+p_final <- p_labels_bold +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    offset = 0.22,
+    pwidth = 0.34,
+    width = 0.96,
+    
+    colour = "white",
+    linewidth = 0.30,
+    
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  ) +
+  
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.box.margin = ggplot2::margin(
+      0, 5, 0, 18,
+      unit = "mm"
+    ),
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      face = "bold",
+      size = 10,
+      colour = "black"
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 9,
+      colour = "black"
+    ),
+    
+    plot.margin = ggplot2::margin(
+      8, 22, 8, 8,
+      unit = "mm"
+    )
+  )
+windows(width = 24, height = 22)
+print(p_final)
+tip_map <- tree_tax %>%
+  dplyr::distinct(G, Genus, Phylum) %>%
+  dplyr::mutate(
+    tip_id = paste0(
+      "tip_",
+      sprintf("%03d", dplyr::row_number())
+    )
+  )
+tip_meta <- tip_map %>%
+  dplyr::transmute(
+    label = tip_id,
+    Genus = Genus,
+    Phylum = Phylum
+  )
+head(tip_map)
+head(tip_meta)
+nrow(tip_meta)
+ape::Ntip(phy)
+p_vibrant <- ggtree::ggtree(
+  phy,
+  layout = "fan",
+  open.angle = 25,
+  linewidth = 0.55,
+  colour = "black"
+) %<+% tip_meta
+tip_map <- tree_tax %>%
+  dplyr::distinct(G, Genus, Phylum) %>%
+  dplyr::mutate(
+    tip_id = paste0(
+      "tip_",
+      sprintf("%03d", dplyr::row_number())
+    )
+  )
+exists("tree_tax")
+tip_map <- tree_tax %>%
+  dplyr::distinct(G, Genus, Phylum) %>%
+  dplyr::mutate(
+    tip_id = paste0(
+      "tip_",
+      sprintf("%03d", dplyr::row_number())
+    )
+  )
+tip_meta <- tip_map %>%
+  dplyr::transmute(
+    label = tip_id,
+    Genus = Genus,
+    Phylum = Phylum
+  )
+head(tip_map)
+head(tip_meta)
+nrow(tip_meta)
+ape::Ntip(phy)
+p_vibrant <- ggtree::ggtree(
+  phy,
+  layout = "fan",
+  open.angle = 25,
+  linewidth = 0.55,
+  colour = "black"
+) %<+% tip_meta
+vibrant_phylum <- c(
+  "Actinobacteriota" = "#E76F73",
+  "Bacteroidota"     = "#59B87A",
+  "Firmicutes"       = "#7C83C9",
+  "Fusobacteriota"   = "#E5B73B",
+  "Proteobacteria"   = "#4FA3C7"
+)
+for (i in seq_len(nrow(phylum_nodes))) {
+  
+  ph <- as.character(phylum_nodes$Phylum[i])
+  nd <- phylum_nodes$node[i]
+  
+  if (!is.na(nd) && ph %in% names(vibrant_phylum)) {
+    
+    p_vibrant <- p_vibrant +
+      ggtree::geom_hilight(
+        node = nd,
+        fill = vibrant_phylum[[ph]],
+        alpha = 0.38,
+        extend = 0.12
+      )
+  }
+}
+p_vibrant <- p_vibrant +
+  ggtree::geom_tree(
+    linewidth = 0.50,
+    colour = "black"
+  )
+tip_pos <- p_vibrant$data %>%
+  dplyr::filter(isTip) %>%
+  dplyr::select(label, x, y, angle) %>%
+  dplyr::left_join(
+    tip_meta %>%
+      dplyr::select(label, Genus, Phylum),
+    by = "label"
+  )
+label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.88
+tip_pos <- dplyr::mutate(
+  tip_pos,
+  label_x = label_radius,
+  label_angle = angle,
+  label_hjust = dplyr::if_else(
+    label_angle > 90 & label_angle < 270,
+    1,
+    0
+  ),
+  label_angle = dplyr::if_else(
+    label_angle > 90 & label_angle < 270,
+    label_angle + 180,
+    label_angle
+  )
+)
+tip_pos <- dplyr::mutate(
+  tip_pos,
+  italic_label = !grepl(
+    "group|uncultured|unclassified|unknown|norank|metagenome|^[0-9]|DNF",
+    Genus,
+    ignore.case = TRUE
+  )
+)
+head(tip_pos)
+windowsFonts(
+  TimesNewRoman = windowsFont("Times New Roman")
+)
+p_labels_clean <- p_vibrant +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, !italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "bold",
+    size = 2.4,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "bold.italic",
+    size = 2.4,
+    colour = "black"
+  )
+windows(width = 16, height = 16)
+print(p_labels_clean)
+label_radius <- max(tip_pos$x, na.rm = TRUE) * 0.94
+tip_pos <- dplyr::mutate(
+  tip_pos,
+  label_x = label_radius,
+  label_angle = angle,
+  
+  label_hjust = dplyr::if_else(
+    label_angle > 90 & label_angle < 270,
+    1,
+    0
+  ),
+  
+  label_angle = dplyr::if_else(
+    label_angle > 90 & label_angle < 270,
+    label_angle + 180,
+    label_angle
+  )
+)
+p_labels_clear <- p_vibrant +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, !italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.7,
+    colour = "black"
+  ) +
+  
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "italic",
+    size = 2.7,
+    colour = "black"
+  )
+windows(width = 18, height = 18)
+print(p_labels_clear)
+# ============================================================

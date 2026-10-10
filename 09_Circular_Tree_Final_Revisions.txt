@@ -1,0 +1,316 @@
+
+cat(
+  "\nFigure successfully generated.\n",
+  "TIFF: DFU_Circular_Cladogram_FINAL_1200dpi.tiff\n",
+  "PDF:  DFU_Circular_Cladogram_FINAL_Vector.pdf\n"
+)
+p_final_clean <- p_labels_fitted +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    offset = 0.10,     # bring tracks closer
+    pwidth = 0.27,     # slightly narrower outer ring
+    width = 0.98,
+    
+    colour = "white",
+    linewidth = 0.15,
+    
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  ) +
+  
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 8
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 7
+    ),
+    
+    legend.box.spacing = grid::unit(1, "mm"),
+    
+    plot.margin = ggplot2::margin(
+      2, 2, 2, 2,
+      unit = "mm"
+    )
+  )
+windows(width = 14, height = 13)
+range(p_final_clean$data$x, na.rm = TRUE)
+range(p_final_clean$data$y, na.rm = TRUE)
+windows(width = 14, height = 13)
+print(p_final_clean)
+p_final_tracks <- p_labels_fitted +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    offset = 0.10,
+    pwidth = 0.27,
+    width = 0.98,
+    
+    colour = "white",
+    linewidth = 0.15,
+    
+    axis.params = list(
+      axis = "x",
+      text.size = 2.2,
+      text.angle = 0,
+      hjust = 0.5,
+      vjust = 0.5
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  ) +
+  
+  ggplot2::theme(
+    legend.position = "right",
+    
+    legend.title = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 8
+    ),
+    
+    legend.text = ggplot2::element_text(
+      family = "TimesNewRoman",
+      size = 7
+    ),
+    
+    legend.box.spacing = grid::unit(1, "mm"),
+    
+    plot.margin = ggplot2::margin(
+      2, 2, 2, 2,
+      unit = "mm"
+    )
+  )
+windows(width = 14, height = 13)
+print(p_final_tracks)
+library(ggplot2)
+library(ggtree)
+library(ggtreeExtra)
+library(ggnewscale)
+library(dplyr)
+library(tidyr)
+exists("p_labels_fitted")
+exists("fan_abund_plot")
+exists("geom_tile")
+exists("p_labels")
+p_labels_fitted <- p_labels
+fan_abund_plot <- fan_abund %>%
+  dplyr::select(
+    label,
+    Sample,
+    Abundance,
+    Abundance_plot
+  )
+head(fan_abund_plot)
+exists("p_labels_fitted")
+exists("fan_abund_plot")
+exists("geom_tile")
+tile_geom <- ggplot2::geom_tile
+p_final_tracks <- p_labels_fitted +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = tile_geom,
+    
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    offset = 0.10,
+    pwidth = 0.27,
+    width = 0.98,
+    
+    colour = "white",
+    linewidth = 0.15,
+    
+    axis.params = list(
+      axis = "none"
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  )
+windows(width = 14, height = 13)
+print(p_final_tracks)
+p_final_samples <- p_labels_fitted +
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    data = fan_abund_plot,
+    geom = geom_tile,
+    
+    mapping = ggplot2::aes(
+      y = label,
+      x = Sample,
+      fill = Abundance_plot
+    ),
+    
+    offset = 0.10,
+    pwidth = 0.27,
+    width = 0.98,
+    
+    colour = "white",
+    linewidth = 0.15,
+    
+    axis.params = list(
+      axis = "x",
+      text.size = 2.0,
+      text.angle = 90,
+      hjust = 1
+    )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    name = expression(log[10](Abundance + 1))
+  )
+windows(width = 14, height = 13)
+print(p_final_samples)
+ggplot2::ggsave(
+  "DFU_cladogram_FINAL.tiff",
+  plot = p_final_samples,
+  width = 220,
+  height = 210,
+  units = "mm",
+  dpi = 1200,
+  compression = "lzw",
+  bg = "white"
+)
+ggplot2::ggsave(
+  "DFU_cladogram_FINAL.pdf",
+  plot = p_final_samples,
+  width = 220,
+  height = 210,
+  units = "mm",
+  device = cairo_pdf,
+  bg = "white"
+)
+family = "TimesNewRoman",
+family = "TimesNewRoman",
+fontface = "italic",
+size = 2.7,
+colour = "black"
+ffamily = "TimesNewRoman",amily = "TimesNewRoman",
+exists("p_final_samples")
+exists("p_final_samples")
+exists("p_final_clean")
+windows(width = 14, height = 13)
+print(p_final_clean)
+exists("p_labels_fitted")
+exists("p_vibrant")
+exists("fan_abund_plot")
+exists("phy")
+ggplot2::ggsave(
+  filename = "DFU_cladogram_high_quality.png",
+  plot = p_final_clean,
+  width = 10,
+  height = 10,
+  units = "in",
+  dpi = 600,
+  bg = "white"
+)
+getwd()
+size = 2.0
+size = 2.5
+family = "TimesNewRoman",
+family = "TimesNewRoman",
+fontface = "italic
+p_labels_fitted <- p_vibrant +
+
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, !italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "plain",
+    size = 2.5,
+    colour = "black"
+  ) +
+
+  ggplot2::geom_text(
+    data = dplyr::filter(tip_pos, italic_label),
+    mapping = ggplot2::aes(
+      x = label_x,
+      y = y,
+      label = Genus,
+      angle = label_angle,
+      hjust = label_hjust
+    ),
+    inherit.aes = FALSE,
+    family = "TimesNewRoman",
+    fontface = "italic",
+    size = 2.5,
+    colour = "black"
+  )
+print(p_labels_fitted)  
+fontface = "italic",
+size = 2.5
+fontface = "italic",
+size = 2.5
+fontface = "italic",

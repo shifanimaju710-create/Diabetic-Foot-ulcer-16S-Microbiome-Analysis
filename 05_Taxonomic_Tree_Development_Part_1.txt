@@ -1,0 +1,3175 @@
+micro <- read_excel(file.choose())
+load(file.choose())
+ls()
+exists("tree_tax")
+exists("tree_tax")
+exists("tax_graph")
+head(tree_tax)
+library(dplyr)
+library(igraph)
+library(ggraph)
+tree_tax <- tree_tax %>%
+  mutate(
+    P = paste0("P:", Phylum),
+    C = paste0("C:", Phylum, "|", Class),
+    O = paste0("O:", Phylum, "|", Class, "|", Order),
+    F = paste0("F:", Phylum, "|", Class, "|", Order, "|", Family),
+    G = paste0("G:", Phylum, "|", Class, "|", Order, "|", Family, "|", Genus)
+  )
+tree_edges <- bind_rows(
+  tree_tax %>% distinct(P, C) %>% transmute(from = P, to = C),
+  tree_tax %>% distinct(C, O) %>% transmute(from = C, to = O),
+  tree_tax %>% distinct(O, F) %>% transmute(from = O, to = F),
+  tree_tax %>% distinct(F, G) %>% transmute(from = F, to = G)
+) %>%
+  distinct()
+root_edges <- data.frame(
+  from = "DFU_16S",
+  to = unique(tree_tax$P)
+)
+tree_edges <- bind_rows(root_edges, tree_edges)
+tax_graph <- graph_from_data_frame(
+  tree_edges,
+  directed = TRUE
+)
+tax_graph
+pTree <- ggraph(
+  tax_graph,
+  layout = "dendrogram",
+  circular = TRUE
+)
+pTree <- pTree +
+  geom_edge_diagonal(
+    colour = "grey60",
+    linewidth = 0.3,
+    alpha = 0.8
+  ) +
+  geom_node_point(
+    size = 1.5,
+    colour = "steelblue"
+  ) +
+  theme_void()
+pTree
+V(tax_graph)$rank <- ifelse(
+  grepl("^G:", V(tax_graph)$name),
+  "Genus",
+  "Internal"
+)
+V(tax_graph)$label <- sub(
+  "^G:.*\\|",
+  "",
+  V(tax_graph)$name
+)
+head(
+  V(tax_graph)$label[
+    V(tax_graph)$rank == "Genus"
+  ],
+  20
+)
+genus_info <- tree_tax %>%
+  dplyr::select(Phylum, Genus, G) %>%
+  dplyr::distinct()
+head(genus_info)
+V(tax_graph)$Phylum <- NA_character_
+for(i in seq_len(nrow(genus_info))) {
+  
+  node_id <- genus_info$G[i]
+  
+  V(tax_graph)$Phylum[
+    V(tax_graph)$name == node_id
+  ] <- genus_info$Phylum[i]
+}
+unique(na.omit(V(tax_graph)$Phylum))
+pTree2 <- ggraph(
+  tax_graph,
+  layout = "dendrogram",
+  circular = TRUE
+) +
+  geom_edge_diagonal(
+    colour = "grey45",
+    linewidth = 0.3
+  ) +
+  geom_node_point(
+    aes(colour = Phylum),
+    size = 2,
+    na.rm = TRUE
+  ) +
+  theme_void() +
+  theme(
+    legend.position = "right"
+  )
+pTree2
+library(ggraph)
+library(ggplot2)
+pTree3 <- ggraph(
+  tax_graph,
+  layout = "dendrogram",
+  circular = TRUE
+) +
+  geom_edge_diagonal(
+    colour = "grey40",
+    linewidth = 0.3,
+    alpha = 0.8
+  ) +
+  pTree3 <- ggraph(
+    tax_graph,
+    layout = "dendrogram",
+    circular = TRUE
+  ) +
+  geom_edge_diagonal(
+    colour = "grey40",
+    linewidth = 0.3,
+    alpha = 0.8
+  ) +
+  geom_node_point(
+    aes(colour = Phylum),
+    size = 1.8,
+    na.rm = TRUE
+  ) +
+  geom_node_text(
+    aes(
+      label = ifelse(rank == "Genus", label, "")
+    ),
+    size = 2,
+    repel = TRUE
+  ) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    plot.margin = margin(20, 20, 20, 20)
+  )  
+pTree3 <- ggraph(tax_graph, layout = "dendrogram", circular = TRUE) +
+  geom_edge_diagonal(
+    colour = "grey40",
+    linewidth = 0.3,
+    alpha = 0.8
+  ) +
+  geom_node_point(
+    aes(colour = Phylum),
+    size = 1.8,
+    na.rm = TRUE
+  ) +
+  geom_node_text(
+    aes(label = ifelse(rank == "Genus", label, "")),
+    size = 2
+  ) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    plot.margin = margin(20, 20, 20, 20)
+  )
+pTree3
+lay <- create_layout(
+  tax_graph,
+  layout = "dendrogram",
+  circular = TRUE
+)
+lay$node_name <- V(tax_graph)$name[lay$.ggraph.orig_index]
+lay$rank <- V(tax_graph)$rank[lay$.ggraph.orig_index]
+lay$label <- V(tax_graph)$label[lay$.ggraph.orig_index]
+lay$Phylum <- V(tax_graph)$Phylum[lay$.ggraph.orig_index]
+head(lay)
+lay$angle <- atan2(lay$y, lay$x) * 180 / pi
+
+lay$hjust <- ifelse(
+  lay$angle < -90 | lay$angle > 90,
+  1,
+  0
+)
+lay$angle <- atan2(lay$y, lay$x) * 180 / pi
+lay$hjust <- ifelse(
+  lay$angle < -90 | lay$angle > 90,
+  1,
+  0
+)
+lay$text_angle <- ifelse(
+  lay$angle < -90,
+  lay$angle + 180,
+  ifelse(
+    lay$angle > 90,
+    lay$angle - 180,
+    lay$angle
+  )
+)
+pTree4 <- ggraph(lay) +
+  geom_edge_diagonal(
+    colour = "grey35",
+    linewidth = 0.3,
+    alpha = 0.8
+  ) +
+  geom_node_point(
+    aes(colour = Phylum),
+    size = 1.5,
+    na.rm = TRUE
+  ) +
+  geom_node_text(
+    aes(
+      label = ifelse(rank == "Genus", label, ""),
+      angle = text_angle,
+      hjust = hjust
+    ),
+    size = 2
+  ) +
+  coord_fixed(clip = "off") +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    plot.margin = margin(40, 80, 40, 80)
+  )
+pTree4
+V(tax_graph)$branch_phylum <- NA_character_
+for(i in seq_len(vcount(tax_graph))) {
+  
+  nm <- V(tax_graph)$name[i]
+  
+  if(grepl("^P:", nm)) {
+    V(tax_graph)$branch_phylum[i] <- sub("^P:", "", nm)
+  }
+}
+for(p in unique(tree_tax$Phylum)) {
+  pnode <- paste0("P:", p)  
+  if(pnode %in% V(tax_graph)$name) {  
+    descendants <- subcomponent(
+      tax_graph,
+      pnode,
+      mode = "out"
+    )    
+    V(tax_graph)$branch_phylum[descendants] <- p
+  }
+}    
+table(V(tax_graph)$branch_phylum, useNA = "ifany")
+pTree5 <- ggraph(
+  tax_graph,
+  layout = "dendrogram",
+  circular = TRUE
+) +
+  geom_edge_diagonal(
+    aes(colour = node.branch_phylum),
+    linewidth = 0.45,
+    alpha = 0.8
+  ) +
+  geom_node_point(
+    aes(colour = branch_phylum),
+    size = 1.3,
+    na.rm = TRUE
+  ) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    plot.margin = margin(40, 40, 40, 40)
+  )
+aes(colour = node.branch_phylum)
+leaf_data <- lay %>%
+  dplyr::filter(rank == "Genus") %>%
+  dplyr::arrange(x) %>%
+  dplyr::mutate(
+    leaf_no = dplyr::row_number(),
+    angle_mid = 2 * pi * (leaf_no - 0.5) / dplyr::n()
+  )
+head(leaf_data)
+ls()
+exists("tree_tax")
+library(dplyr)
+library(igraph)
+library(ggraph)
+library(ggplot2)
+tree_tax <- tree_tax %>%
+  mutate(
+    P = paste0("P:", Phylum),
+    C = paste0("C:", Phylum, "|", Class),
+    O = paste0("O:", Phylum, "|", Class, "|", Order),
+    F = paste0("F:", Phylum, "|", Class, "|", Order, "|", Family),
+    G = paste0("G:", Phylum, "|", Class, "|", Order, "|", Family, "|", Genus)
+  )
+tree_edges <- bind_rows(
+  tree_tax %>% distinct(P, C) %>% transmute(from = P, to = C),
+  tree_tax %>% distinct(C, O) %>% transmute(from = C, to = O),
+  tree_tax %>% distinct(O, F) %>% transmute(from = O, to = F),
+  tree_tax %>% distinct(F, G) %>% transmute(from = F, to = G)
+) %>%
+  distinct()
+root_edges <- data.frame(
+  from = "DFU_16S",
+  to = unique(tree_tax$P)
+)
+tree_edges <- bind_rows(root_edges, tree_edges)
+tax_graph <- graph_from_data_frame(
+  tree_edges,
+  directed = TRUE
+)
+V(tax_graph)$rank <- ifelse(
+  grepl("^G:", V(tax_graph)$name),
+  "Genus",
+  "Internal"
+)
+V(tax_graph)$label <- sub(
+  "^G:.*\\|",
+  "",
+  V(tax_graph)$name
+)
+V(tax_graph)$Phylum <- NA_character_
+for(p in unique(tree_tax$Phylum)) {
+  
+  pnode <- paste0("P:", p)
+  
+  if(pnode %in% V(tax_graph)$name) {
+    
+    descendants <- subcomponent(
+      tax_graph,
+      pnode,
+      mode = "out"
+    )
+    V(tax_graph)$Phylum <- NA_character_    
+    for (p in unique(tree_tax$Phylum)) {    
+      for (p in unique(tree_tax$Phylum)) {
+        
+        pnode <- paste0("P:", p)
+        
+        if (pnode %in% V(tax_graph)$name) {
+          
+          descendants <- subcomponent(
+            tax_graph,
+            pnode,
+            mode = "out"
+          )      
+          V(tax_graph)$Phylum[descendants] <- p
+        }
+      }          
+      for (p in unique(tree_tax$Phylum)) {
+        
+        pnode <- paste0("P:", p)
+        
+        if (pnode %in% V(tax_graph)$name) {
+          
+          descendants <- subcomponent(
+            tax_graph,
+            pnode,
+            mode = "out"
+          )
+          
+          V(tax_graph)$Phylum[descendants] <- p
+        }
+      }      
+      V(tax_graph)$Phylum <- NA_character_
+      for (p in unique(tree_tax$Phylum)) {
+        
+        pnode <- paste0("P:", p)
+        
+        if (pnode %in% V(tax_graph)$name) {
+          
+          descendants <- subcomponent(
+            tax_graph,
+            pnode,
+            mode = "out"
+          )
+          
+          V(tax_graph)$Phylum[descendants] <- p
+        }
+      }      
+      table(V(tax_graph)$Phylum, useNA = "ifany")      
+      lay <- create_layout(
+        tax_graph,
+        layout = "dendrogram",
+        circular = TRUE
+      )      
+      lay$rank <- V(tax_graph)$rank[lay$.ggraph.orig_index]      
+      lay$label <- V(tax_graph)$label[lay$.ggraph.orig_index]      
+      lay$Phylum <- V(tax_graph)$Phylum[lay$.ggraph.orig_index]      
+      leaf_data <- lay %>%
+        dplyr::filter(rank == "Genus") %>%
+        dplyr::arrange(x) %>%
+        dplyr::mutate(
+          leaf_no = dplyr::row_number(),
+          angle_mid = 2 * pi * (leaf_no - 0.5) / dplyr::n()
+        )      
+      names(lay)      
+      lay$node_name <- V(tax_graph)$name[lay$.ggraph.orig_index]      
+      lay$RankType <- ifelse(
+        grepl("^G:", lay$node_name),
+        "Genus",
+        "Internal"
+      )      
+      lay$GenusLabel <- ifelse(
+        lay$RankType == "Genus",
+        sub("^G:.*\\|", "", lay$node_name),
+        NA
+      )      
+      lay$Phylum <- V(tax_graph)$Phylum[lay$.ggraph.orig_index]      
+      table(lay$RankType)      
+      leaf_data <- lay %>%
+        dplyr::filter(RankType == "Genus") %>%
+        dplyr::arrange(x) %>%
+        dplyr::mutate(
+          leaf_no = dplyr::row_number(),
+          angle_mid = 2 * pi * (leaf_no - 0.5) / dplyr::n()
+        )      
+      table(leaf_data$Phylum, useNA = "ifany")      
+      sector_data <- leaf_data %>%
+        dplyr::group_by(Phylum) %>%
+        dplyr::summarise(
+          start = min(leaf_no),
+          end = max(leaf_no),
+          .groups = "drop"
+        )      
+      sector_data      
+      n_leaf <- nrow(leaf_data)      
+      sector_data <- sector_data %>%
+        dplyr::mutate(
+          xmin = 2 * pi * (start - 1) / n_leaf,
+          xmax = 2 * pi * end / n_leaf,
+          xmid = (xmin + xmax) / 2
+        )      
+      sector_data      
+      phylum_names <- unique(na.omit(leaf_data$Phylum))      
+      phylum_cols <- setNames(
+        scales::hue_pal()(length(phylum_names)),
+        phylum_names
+      )      
+      phylum_cols      
+      leaf_data %>%
+        dplyr::select(leaf_no, GenusLabel, Phylum) %>%
+        head(20)      
+      p_sector <- ggraph(
+        tax_graph,
+        layout = "dendrogram",
+        circular = TRUE
+      ) +
+        geom_edge_diagonal(
+          colour = "grey35",
+          linewidth = 0.30,
+          alpha = 0.8
+        ) +
+        geom_node_point(
+          aes(colour = Phylum),
+          size = 1.4,
+          na.rm = TRUE
+        ) +
+        scale_colour_manual(
+          values = phylum_cols,
+          name = "Phylum"
+        ) +
+        theme_void() +
+        theme(
+          legend.position = "right",
+          plot.margin = margin(40, 60, 40, 60)
+        )      
+      p_sector      
+      p_final <- ggraph(
+        tax_graph,
+        layout = "dendrogram",
+        circular = TRUE
+      ) +
+        geom_edge_diagonal(
+          colour = "grey35",
+          linewidth = 0.30,
+          alpha = 0.75
+        ) +
+        geom_node_point(
+          aes(colour = Phylum),
+          size = 1.3,
+          na.rm = TRUE
+        ) +
+        geom_node_text(
+          aes(
+            label = ifelse(
+              grepl("^G:", name),
+              sub("^G:.*\\|", "", name),
+              ""
+            )
+          ),
+          size = 1.8
+        ) +
+        scale_colour_manual(
+          values = phylum_cols,
+          name = "Phylum"
+        ) +
+        theme_void() +
+        theme(
+          legend.position = "right",
+          legend.title = element_text(size = 9, face = "bold"),
+          legend.text = element_text(size = 7),
+          plot.margin = margin(50, 100, 50, 100)
+        )      
+      p_final      
+      exists("micro")      
+      names(micro)      
+      genus_abund <- micro %>%
+        dplyr::mutate(
+          Genus = stringr::str_extract(
+            `#OTU ID`,
+            "g__[^;]+"
+          ),
+          Genus = sub("^g__", "", Genus)
+        ) %>%
+        dplyr::filter(
+          !is.na(Genus),
+          Genus != ""
+        ) %>%
+        dplyr::select(
+          Genus,
+          DF_01,
+          DF_02,
+          DF_03,
+          DF_04,
+          DF_05
+        ) %>%
+        dplyr::group_by(Genus) %>%
+        dplyr::summarise(
+          dplyr::across(
+            c(DF_01, DF_02, DF_03, DF_04, DF_05),
+            ~sum(as.numeric(.x), na.rm = TRUE)
+          ),
+          .groups = "drop"
+        )      
+      head(genus_abund)      
+      ring_data <- genus_abund %>%
+        tidyr::pivot_longer(
+          cols = starts_with("DF_"),
+          names_to = "Sample",
+          values_to = "Abundance"
+        )      
+      head(ring_data, 15)      
+      summary(ring_data$Abundance)      
+      ring_plot_data <- leaf_data %>%
+        dplyr::select(
+          leaf_no,
+          GenusLabel,
+          Phylum
+        ) %>%
+        dplyr::left_join(
+          ring_data,
+          by = c("GenusLabel" = "Genus")
+        )      
+      ring_plot_data$Abundance[
+        is.na(ring_plot_data$Abundance)
+      ] <- 0      
+      table(ring_plot_data$Sample, useNA = "ifany")      
+      head(ring_plot_data, 15)      
+      ring_plot_data$Sample <- factor(
+        ring_plot_data$Sample,
+        levels = c(
+          "DF_01",
+          "DF_02",
+          "DF_03",
+          "DF_04",
+          "DF_05"
+        )
+      )      
+      table(ring_plot_data$Sample)      
+      ring_plot_data <- ring_plot_data %>%
+        dplyr::mutate(
+          sample_no = as.numeric(Sample),
+          angle = 2 * pi * (leaf_no - 0.5) / length(unique(leaf_no)),
+          radius = 1.05 + (sample_no * 0.08),
+          ring_x = radius * cos(angle),
+          ring_y = radius * sin(angle)
+        )      
+      head(ring_plot_data)      
+      p_rings <- ggraph(
+        tax_graph,
+        layout = "dendrogram",
+        circular = TRUE
+      ) +
+        geom_edge_diagonal(
+          colour = "grey45",
+          linewidth = 0.25,
+          alpha = 0.75
+        ) +
+        geom_node_point(
+          aes(colour = Phylum),
+          size = 1.2,
+          na.rm = TRUE
+        ) +
+        geom_point(
+          data = ring_plot_data,
+          aes(
+            x = ring_x,
+            y = ring_y,
+            size = Abundance,
+            fill = Sample
+          ),
+          shape = 21,
+          colour = "grey30",
+          stroke = 0.15,
+          inherit.aes = FALSE
+        ) +
+        scale_colour_manual(
+          values = phylum_cols,
+          name = "Phylum"
+        ) +
+        scale_size_continuous(
+          range = c(0.3, 3.5),
+          name = "Abundance"
+        ) +
+        coord_fixed(
+          xlim = c(-1.6, 1.6),
+          ylim = c(-1.6, 1.6),
+          clip = "off"
+        ) +
+        theme_void() +
+        theme(
+          legend.position = "right",
+          plot.margin = margin(40, 40, 40, 40)
+        )      
+      p_rings      
+      label_data <- ring_plot_data %>%
+        dplyr::distinct(
+          leaf_no,
+          GenusLabel,
+          Phylum
+        ) %>%
+        dplyr::arrange(leaf_no)      
+      dplyr::mutate(
+        angle_rad = 2 * pi * (leaf_no - 0.5) / n_leaf,
+        label_radius = 1.55,
+        
+        label_x = label_radius * cos(angle_rad),
+        label_y = label_radius * sin(angle_rad),
+        
+        angle_deg = angle_rad * 180 / pi,
+        
+        text_angle = ifelse(
+          angle_deg > 90 & angle_deg < 270,
+          angle_deg + 180,
+          angle_deg
+        ),
+        
+        hjust = ifelse(
+          angle_deg > 90 & angle_deg < 270,
+          1,
+          0
+        )
+      )      
+      names(ring_plot_data)     
+      label_data <- leaf_data %>%
+        dplyr::filter(RankType == "Genus") %>%
+        dplyr::arrange(x) %>%
+        dplyr::mutate(
+          leaf_no = dplyr::row_number()
+        ) %>%
+        dplyr::select(
+          leaf_no,
+          GenusLabel,
+          Phylum
+        )      
+      head(label_data)      
+      n_leaf <- nrow(label_data) 
+      label_data <- label_data %>%
+        dplyr::mutate(
+          angle_rad = 2 * pi * (leaf_no - 0.5) / n_leaf,
+          label_radius = 1.55,
+          label_x = label_radius * cos(angle_rad),
+          label_y = label_radius * sin(angle_rad),
+          angle_deg = angle_rad * 180 / pi,
+          text_angle = ifelse(
+            angle_deg > 90 & angle_deg < 270,
+            angle_deg + 180,
+            angle_deg
+          ),
+          hjust = ifelse(
+            angle_deg > 90 & angle_deg < 270,
+            1,
+            0
+          )
+        )      
+      head(label_data)      
+      p_publication <- p_rings +
+        geom_text(
+          data = label_data,
+          aes(
+            x = label_x,
+            y = label_y,
+            label = GenusLabel,
+            angle = text_angle,
+            hjust = hjust
+          ),
+          inherit.aes = FALSE,
+          size = 2.0,
+          fontface = "italic"
+        ) +
+        coord_fixed(
+          xlim = c(-2.1, 2.1),
+          ylim = c(-2.1, 2.1),
+          clip = "off"
+        ) +
+        theme(
+          plot.margin = margin(60, 100, 60, 100)
+        )      
+      p_publication      
+      sample_labels <- data.frame(
+        Sample = c("DF_01", "DF_02", "DF_03", "DF_04", "DF_05"),
+        radius = 1.05 + (1:5 * 0.08)
+      )      
+      sample_labels$label_x <- sample_labels$radius      
+      sample_labels$label_y <- 0      
+      p_publication2 <- p_publication +
+        geom_text(
+          data = sample_labels,
+          aes(
+            x = label_x,
+            y = label_y,
+            label = Sample
+          ),
+          inherit.aes = FALSE,
+          hjust = -0.15,
+          size = 2.5,
+          fontface = "bold"
+        )      
+      p_publication2      
+      sector_data <- label_data %>%
+        dplyr::filter(!is.na(Phylum)) %>%
+        dplyr::group_by(Phylum) %>%
+        dplyr::summarise(
+          first_leaf = min(leaf_no),
+          last_leaf = max(leaf_no),
+          .groups = "drop"
+        )     
+      sector_data <- sector_data %>%
+        dplyr::mutate(
+          start_angle = 2 * pi * (first_leaf - 1) / n_leaf,
+          end_angle   = 2 * pi * last_leaf / n_leaf
+        )      
+      sector_data      
+      sector_plot_data <- sector_data %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(
+          angle_seq = list(
+            seq(start_angle, end_angle, length.out = 100)
+          )
+        ) %>%
+        tidyr::unnest(angle_seq)      
+      sector_plot_data <- sector_plot_data %>%
+        dplyr::mutate(
+          inner_r = 0.25,
+          outer_r = 1.02,
+          x_inner = inner_r * cos(angle_seq),
+          y_inner = inner_r * sin(angle_seq),
+          x_outer = outer_r * cos(angle_seq),
+          y_outer = outer_r * sin(angle_seq)
+        )      
+      head(sector_plot_data)      
+      sector_polygons <- sector_plot_data %>%
+        dplyr::group_by(Phylum) %>%
+        dplyr::group_modify(~{
+          
+          outer <- .x %>%
+            dplyr::arrange(angle_seq) %>%
+            dplyr::transmute(
+              x = x_outer,
+              y = y_outer
+            )      
+          sector_polygons <- sector_plot_data %>%
+            dplyr::group_by(Phylum) %>%
+            dplyr::group_modify(~{          
+              outer <- .x %>%
+                dplyr::arrange(angle_seq) %>%
+                dplyr::transmute(
+                  x = x_outer,
+                  y = y_outer
+                )              
+sector_polygons <- sector_plot_data %>%
+dplyr::group_by(Phylum) %>%
+                dplyr::group_modify(~{
+                  
+                  outer <- .x %>%
+                    dplyr::arrange(angle_seq) %>%
+                    dplyr::transmute(
+                      x = x_outer,
+                      y = y_outer
+                    )              
+                  important_genera <- genus_abund %>%
+                    dplyr::mutate(
+                      Total = DF_01 + DF_02 + DF_03 + DF_04 + DF_05
+                    ) %>%
+                    dplyr::arrange(dplyr::desc(Total)) %>%
+                    dplyr::slice_head(n = 20) %>%
+                    dplyr::pull(Genus)                 
+                  label_data$PlotLabel <- ifelse(
+                    label_data$GenusLabel %in% important_genera,
+                    label_data$GenusLabel,
+                    ""
+                  )                  
+                  ring_plot_data <- ring_plot_data %>%
+                    dplyr::mutate(
+                      sample_no = as.numeric(Sample),
+                      angle = 2 * pi * (leaf_no - 0.5) /
+                        length(unique(leaf_no)),
+                      radius = 1.08 + sample_no * 0.055,
+                      ring_x = radius * cos(angle),
+                      ring_y = radius * sin(angle)
+                    )                  
+                  p_clean <- ggraph(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  ) +
+                    
+                    geom_edge_diagonal(
+                      colour = "grey45",
+                      linewidth = 0.28,
+                      alpha = 0.75
+                    ) +
+                    
+                    geom_node_point(
+                      aes(colour = Phylum),
+                      size = 0.9,
+                      na.rm = TRUE
+                    ) +
+                    
+                    geom_point(
+                      data = ring_plot_data,
+                      aes(
+                        x = ring_x,
+                        y = ring_y,
+                        size = Abundance,
+                        fill = Sample
+                      ),
+                      shape = 21,
+                      colour = "grey35",
+                      stroke = 0.15,
+                      alpha = 0.85,
+                      inherit.aes = FALSE
+                    ) +
+                    
+                    geom_text(
+                      data = label_data,
+                      aes(
+                        x = label_x,
+                        y = label_y,
+                        label = PlotLabel,
+                        angle = text_angle,
+                        hjust = hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 2.4,
+                      fontface = "italic"
+                    ) +
+                    
+                    scale_colour_manual(
+                      values = phylum_cols,
+                      name = "Phylum",
+                      na.value = "grey70"
+                    ) +
+                    
+                    scale_size_continuous(
+                      range = c(0.25, 2.2),
+                      name = "Relative abundance"
+                    ) +
+                    
+                    guides(
+                      fill = guide_legend(
+                        title = "Sample",
+                        override.aes = list(size = 3)
+                      ),
+                      colour = guide_legend(
+                        title = "Phylum",
+                        override.aes = list(size = 3)
+                      ),
+                      size = guide_legend(
+                        title = "Abundance"
+                      )
+                    ) +
+                    
+                    coord_fixed(
+                      xlim = c(-1.85, 1.85),
+                      ylim = c(-1.65, 1.65),
+                      clip = "off"
+                    ) +
+                    
+                    theme_void(base_size = 9) +
+                    
+                    theme(
+                      legend.position = "right",
+                      legend.box = "vertical",
+                      
+                      legend.title = element_text(
+                        size = 9,
+                        face = "bold"
+                      ),
+                      
+                      legend.text = element_text(
+                        size = 7.5
+                      ),
+                      
+                      legend.key.height = grid::unit(0.38, "cm"),
+                      
+                      plot.margin = margin(
+                        20, 30, 20, 30
+                      )
+                    )                  
+                  p_clean                  
+                  ggsave(
+                    "DFU_circular_taxonomic_tree.tiff",
+                    p_clean,
+                    width = 12,
+                    height = 7,
+                    units = "in",
+                    dpi = 600,
+                    compression = "lzw"
+                  )                  
+                  ggsave(
+                    "DFU_circular_taxonomic_tree.pdf",
+                    p_clean,
+                    width = 12,
+                    height = 7,
+                    units = "in"
+                  )                  
+                  exists("tax_graph")                  
+                  exists("ring_plot_data")                  
+                  exists("label_data")                  
+                  exists("genus_abund")                  
+                  important_genera <- genus_abund %>%
+                    dplyr::mutate(
+                      Total = DF_01 + DF_02 + DF_03 + DF_04 + DF_05
+                    ) %>%
+                    dplyr::arrange(dplyr::desc(Total)) %>%
+                    dplyr::slice_head(n = 20) %>%
+                    dplyr::pull(Genus)
+                  
+                  label_data$PlotLabel <- ifelse(
+                    label_data$GenusLabel %in% important_genera,
+                    label_data$GenusLabel,
+                    ""
+                  )                  
+                  label_data[label_data$PlotLabel != "", c("GenusLabel", "Phylum")]                  
+                  p_final_clean <- ggraph(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  ) +
+                    
+                    # Taxonomic tree
+                    geom_edge_diagonal(
+                      colour = "grey55",
+                      linewidth = 0.25,
+                      alpha = 0.75
+                    ) +
+                    
+                    # Phylum-coded terminal/internal nodes
+                    geom_node_point(
+                      aes(colour = Phylum),
+                      size = 0.8,
+                      alpha = 0.9,
+                      na.rm = TRUE
+                    ) +
+                    
+                    # Five sample abundance tracks
+                    geom_point(
+                      data = ring_plot_data,
+                      aes(
+                        x = ring_x,
+                        y = ring_y,
+                        size = Abundance,
+                        fill = Sample
+                      ),
+                      shape = 21,
+                      colour = "grey40",
+                      stroke = 0.12,
+                      alpha = 0.85,
+                      inherit.aes = FALSE
+                    ) +
+                    
+                    # Only important genus labels
+                    geom_text(
+                      data = label_data,
+                      aes(
+                        x = label_x,
+                        y = label_y,
+                        label = PlotLabel,
+                        angle = text_angle,
+                        hjust = hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 2.5,
+                      fontface = "italic"
+                    ) +
+                    
+                    # Phylum colours
+                    scale_colour_manual(
+                      values = phylum_cols,
+                      name = "Phylum",
+                      na.value = "grey75"
+                    ) +
+                    
+                    # Keep abundance symbols small
+                    scale_size_continuous(
+                      range = c(0.15, 2.0),
+                      name = "Abundance"
+                    ) +
+                    
+                    guides(
+                      fill = guide_legend(
+                        title = "Sample",
+                        order = 1,
+                        override.aes = list(size = 3)
+                      ),
+                      
+                      colour = guide_legend(
+                        title = "Phylum",
+                        order = 2,
+                        override.aes = list(size = 3)
+                      ),
+                      
+                      size = guide_legend(
+                        title = "Abundance",
+                        order = 3
+                      )
+                    ) +
+                    
+                    coord_fixed(
+                      xlim = c(-1.9, 1.9),
+                      ylim = c(-1.65, 1.65),
+                      clip = "off"
+                    ) +
+                    
+                    theme_void(base_size = 9) +
+                    
+                    theme(
+                      legend.position = "right",
+                      legend.box = "vertical",
+                      
+                      legend.title = element_text(
+                        size = 9,
+                        face = "bold"
+                      ),
+                      
+                      legend.text = element_text(
+                        size = 7.5
+                      ),
+                      
+                      legend.key.height = grid::unit(
+                        0.38,
+                        "cm"
+                      ),
+                      
+                      legend.spacing.y = grid::unit(
+                        0.15,
+                        "cm"
+                      ),
+                      
+                      plot.margin = margin(
+                        25, 40, 25, 40
+                      )
+                    )                  
+                  p_final_clean                  
+                  ggsave(
+                    "DFU_Circular_Taxonomic_Profile.tiff",
+                    plot = p_final_clean,
+                    width = 13,
+                    height = 7.5,
+                    units = "in",
+                    dpi = 600,
+                    compression = "lzw"
+                  )                  
+                  ggsave(
+                    "DFU_Circular_Taxonomic_Profile.pdf",
+                    plot = p_final_clean,
+                    width = 13,
+                    height = 7.5,
+                    units = "in"
+                  )                  
+                  label_data$PlotLabel <- label_data$GenusLabel                  
+                  label_data$label_radius <- 1.62                  
+                  label_data$label_x <- label_data$label_radius *
+                    cos(label_data$angle_rad)                  
+                  label_data$label_y <- label_data$label_radius *
+                    sin(label_data$angle_rad)                  
+                  p_tree_nature <- ggraph(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  ) +
+                    
+                    geom_edge_diagonal(
+                      colour = "grey55",
+                      linewidth = 0.22,
+                      alpha = 0.75
+                    ) +
+                    
+                    geom_node_point(
+                      aes(colour = Phylum),
+                      size = 0.75,
+                      alpha = 0.9,
+                      na.rm = TRUE
+                    ) +
+                    
+                    geom_point(
+                      data = ring_plot_data,
+                      aes(
+                        x = ring_x,
+                        y = ring_y,
+                        fill = Sample
+                      ),
+                      inherit.aes = FALSE,
+                      shape = 21,
+                      size = 1.25,
+                      colour = "white",
+                      stroke = 0.15
+                    ) +
+                    
+                    geom_text(
+                      data = label_data,
+                      aes(
+                        x = label_x,
+                        y = label_y,
+                        label = PlotLabel,
+                        angle = text_angle,
+                        hjust = hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 1.75,
+                      fontface = "italic"
+                    ) +
+                    
+                    scale_colour_manual(
+                      values = phylum_cols,
+                      name = "Phylum",
+                      na.value = "grey70"
+                    ) +
+                    
+                    guides(
+                      fill = guide_legend(
+                        title = "Sample",
+                        order = 1,
+                        override.aes = list(size = 3)
+                      ),
+                      
+                      colour = guide_legend(
+                        title = "Phylum",
+                        order = 2,
+                        override.aes = list(size = 3)
+                      )
+                    ) +
+                    
+                    coord_fixed(
+                      xlim = c(-2.05, 2.05),
+                      ylim = c(-1.80, 1.80),
+                      clip = "off"
+                    ) +
+                    
+                    theme_void(base_size = 8) +
+                    
+                    theme(
+                      legend.position = "right",
+                      
+                      legend.title = element_text(
+                        size = 8,
+                        face = "bold"
+                      ),
+                      
+                      legend.text = element_text(
+                        size = 7
+                      ),
+                      
+                      legend.key.height =
+                        grid::unit(0.35, "cm"),
+                      
+                      legend.spacing.y =
+                        grid::unit(0.10, "cm"),
+                      
+                      plot.margin =
+                        margin(15, 20, 15, 20)
+                    )                  
+                  p_tree_nature                  
+                  abundance_panel <- genus_abund %>%
+                    dplyr::mutate(
+                      Total = DF_01 + DF_02 + DF_03 + DF_04 + DF_05
+                    ) %>%
+                    dplyr::arrange(dplyr::desc(Total)) %>%
+                    dplyr::slice_head(n = 15)                  
+                  abundance_panel$Genus <- factor(
+                    abundance_panel$Genus,
+                    levels = rev(abundance_panel$Genus)
+                  )
+                  
+                  
+                  
+                  abundance_panel$Genus <- factor(
+                    abundance_panel$Genus,
+                    levels = rev(abundance_panel$Genus)
+                  )
+                  
+                  Create t
+                  abundance_panel$Genus <- factor(
+                    abundance_panel$Genus,
+                    levels = rev(abundance_panel$Genus)
+                  )                  
+                  p_abundance <- ggplot(
+                    abundance_panel,
+                    aes(
+                      x = Total,
+                      y = Genus
+                    )
+                  ) +
+                    
+                    geom_col(
+                      width = 0.65
+                    ) +
+                    
+                    labs(
+                      x = "Total abundance",
+                      y = NULL
+                    ) +
+                    
+                    theme_classic(base_size = 8) +
+                    
+                    theme(
+                      axis.text.y = element_text(
+                        face = "italic",
+                        size = 7
+                      ),
+                      
+                      axis.text.x = element_text(
+                        size = 7
+                      ),
+                      
+                      axis.title.x = element_text(
+                        size = 8
+                      ),
+                      
+                      axis.line = element_line(
+                        linewidth = 0.3
+                      ),
+                      
+                      axis.ticks = element_line(
+                        linewidth = 0.3
+                      ),
+                      
+                      plot.margin =
+                        margin(10, 10, 10, 10)
+                    )                  
+                  p_abundance                  
+                  install.packages("patchwork")
+                  library(patchwork)
+                  p_nature_final <-
+                    p_tree_nature +
+                    p_abundance +
+                    plot_layout(
+                      widths = c(3.2, 1)
+                    ) +
+                    plot_annotation(
+                      tag_levels = "A"
+                    )                  
+                  p_nature_final                  
+                  ggsave(
+                    "DFU_Taxonomic_Profile_Nature.tiff",
+                    p_nature_final,
+                    width = 13,
+                    height = 7.5,
+                    units = "in",
+                    dpi = 600,
+                    compression = "lzw"
+                  )                  
+                  ggsave(
+                    "DFU_Taxonomic_Profile_Nature.pdf",
+                    p_nature_final,
+                    width = 13,
+                    height = 7.5,
+                    units = "in"
+                  )                  
+                  tree_layout <- create_layout(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  )                  
+                  tree_layout$node_name <-
+                    V(tax_graph)$name[tree_layout$.ggraph.orig_index]
+                  tree_layout$Phylum <-
+                    V(tax_graph)$Phylum[tree_layout$.ggraph.orig_index]                  
+                  tree_layout$Genus <-
+                    ifelse(
+                      grepl("^G:", tree_layout$node_name),
+                      sub("^G:.*\\|", "", tree_layout$node_name),
+                      NA
+                    )                  
+                  tip_data <- tree_layout %>%
+                    dplyr::filter(!is.na(Genus))                  
+                  Q                 
+                  tree_layout <- create_layout(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  )                  
+                  names(tree_layout)                  
+                  tree_layout$node_name <- as.character(
+                    V(tax_graph)$name[tree_layout$.ggraph.index]
+                  )                  
+                  head(tree_layout$node_name)                  
+                  tree_layout$Genus <- NA_character_                  
+                  is_genus <- grepl(
+                    "^G:",
+                    tree_layout$node_name
+                  )                  
+                  tree_layout$Genus[is_genus] <- sub(
+                    "^G:.*\\|",
+                    "",
+                    tree_layout$node_name[is_genus]
+                  )                  
+                  head(na.omit(tree_layout$Genus), 20)                  
+                  tree_layout$Phylum <- V(tax_graph)$Phylum[
+                    tree_layout$.ggraph.index
+                  ]                  
+                  tip_data <- tree_layout %>%
+                    dplyr::filter(!is.na(Genus))                  
+                  nrow(tip_data)                  
+                  head(
+                    tip_data[, c("Genus", "Phylum", "x", "y")]
+                  )                  
+                  p_reference <- ggraph(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  ) +
+                    
+                    # Tree branches
+                    geom_edge_diagonal(
+                      colour = "grey25",
+                      linewidth = 0.35,
+                      alpha = 0.9
+                    ) +
+                    
+                    # Terminal/internal taxonomic nodes
+                    geom_node_point(
+                      aes(colour = Phylum),
+                      size = 0.65,
+                      na.rm = TRUE
+                    ) +
+                    
+                    # All genus names
+                    geom_text(
+                      data = tip_data,
+                      aes(
+                        x = x * 1.18,
+                        y = y * 1.18,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 2.15,
+                      fontface = "italic"
+                    ) +
+                    
+                    scale_colour_manual(
+                      values = phylum_cols,
+                      name = "Phylum",
+                      na.value = "grey65"
+                    ) +
+                    
+                    coord_fixed(
+                      xlim = c(-1.65, 1.65),
+                      ylim = c(-1.65, 1.65),
+                      clip = "off"
+                    ) +
+                    
+                    theme_void() +
+                    
+                    theme(
+                      legend.position = "right",
+                      legend.title = element_text(
+                        size = 9,
+                        face = "bold"
+                      ),
+                      legend.text = element_text(size = 8),
+                      plot.margin = margin(
+                        40, 130, 40, 130
+                      )
+                    )                  
+                  p_reference                  
+                  ggsave(
+                    "DFU_circular_cladogram_large.pdf",
+                    p_reference,
+                    width = 16,
+                    height = 16,
+                    units = "in",
+                    limitsize = FALSE
+                  )  
+                  tip_data <- tip_data %>%
+                    dplyr::mutate(
+                      angle_raw = atan2(y, x) * 180 / pi,
+                      
+                      label_angle = ifelse(
+                        angle_raw > 90,
+                        angle_raw - 180,
+                        ifelse(
+                          angle_raw < -90,
+                          angle_raw + 180,
+                          angle_raw
+                        )
+                      ),
+                      
+                      hjust = ifelse(
+                        angle_raw > 90 | angle_raw < -90,
+                        1,
+                        0
+                      )
+                    )
+                  names(tip_data)                  
+                  head(
+                    tip_data[, c("Genus", "label_angle", "hjust")]
+                  )                  
+                  p_reference <- ggraph(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  ) +
+                    geom_edge_diagonal(
+                      colour = "grey25",
+                      linewidth = 0.30,
+                      alpha = 0.9
+                    ) +
+                    geom_node_point(
+                      aes(colour = Phylum),
+                      size = 0.6,
+                      na.rm = TRUE
+                    ) +
+                    geom_text(
+                      data = tip_data,
+                      aes(
+                        x = x * 1.15,
+                        y = y * 1.15,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 2.0,
+                      fontface = "italic"
+                    ) +
+                    scale_colour_manual(
+                      values = phylum_cols,
+                      name = "Phylum",
+                      na.value = "grey65"
+                    ) +
+                    coord_fixed(
+                      clip = "off"
+                    ) +
+                    theme_void() +
+                    theme(
+                      legend.position = "right",
+                      plot.margin = margin(50, 120, 50, 120)
+                    )                  
+                  p_reference                  
+                  p_reference <- ggraph(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  ) +
+                    
+                    # Tree branches
+                    geom_edge_diagonal(
+                      colour = "grey25",
+                      linewidth = 0.35,
+                      alpha = 0.9
+                    ) +
+                    
+                    # Terminal/internal taxonomic nodes
+                    geom_node_point(
+                      aes(colour = Phylum),
+                      size = 0.65,
+                      na.rm = TRUE
+                    ) +
+                    
+                    # All genus names
+                    geom_text(
+                      data = tip_data,
+                      aes(
+                        x = x * 1.18,
+                        y = y * 1.18,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 2.15,
+                      fontface = "italic"
+                    ) +
+                    
+                    scale_colour_manual(
+                      values = phylum_cols,
+                      name = "Phylum",
+                      na.value = "grey65"
+                    ) +
+                    
+                    coord_fixed(
+                      xlim = c(-1.65, 1.65),
+                      ylim = c(-1.65, 1.65),
+                      clip = "off"
+                    ) +
+                    
+                    theme_void() +
+                    
+                    theme(
+                      legend.position = "right",
+                      legend.title = element_text(
+                        size = 9,
+                        face = "bold"
+                      ),
+                      legend.text = element_text(size = 8),
+                      plot.margin = margin(
+                        40, 130, 40, 130
+                      )
+                    )                  
+                  p_reference                  
+                  ggsave(
+                    "DFU_circular_cladogram_large.pdf",
+                    p_reference,
+                    width = 16,
+                    height = 16,
+                    units = "in",
+                    limitsize = FALSE
+                  )                  
+                  ggsave(
+                    "DFU_circular_cladogram_large.tiff",
+                    p_reference,
+                    width = 16,
+                    height = 16,
+                    units = "in",
+                    dpi = 600,
+                    compression = "lzw",
+                    limitsize = FALSE
+                  )                  
+                  p_base <- ggraph(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  ) +
+                    
+                    geom_edge_diagonal(
+                      colour = "grey25",
+                      linewidth = 0.28,
+                      alpha = 0.9
+                    ) +
+                    
+                    geom_node_point(
+                      aes(colour = Phylum),
+                      size = 0.55,
+                      na.rm = TRUE
+                    ) +
+                    
+                    geom_text(
+                      data = tip_data,
+                      aes(
+                        x = label_x,
+                        y = label_y,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 1.7,
+                      fontface = "italic"
+                    ) +
+                    
+                    scale_colour_manual(
+                      values = phylum_cols,
+                      name = "Phylum",
+                      na.value = "grey70"
+                    ) +
+                    
+                    coord_fixed(
+                      xlim = c(-1.55, 1.55),
+                      ylim = c(-1.55, 1.55),
+                      clip = "off"
+                    ) +
+                    
+                    theme_void() +
+                    
+                    theme(
+                      legend.position = "right",
+                      legend.title = element_text(
+                        size = 8,
+                        face = "bold"
+                      ),
+                      legend.text = element_text(size = 7),
+                      plot.margin = margin(
+                        30, 80, 30, 80
+                      )
+                    )                  
+                  p_base                  
+                  p_base <- ggraph(
+                    tax_graph,
+                    layout = "dendrogram",
+                    circular = TRUE
+                  ) +
+                    geom_edge_diagonal(
+                      colour = "grey25",
+                      linewidth = 0.28,
+                      alpha = 0.9
+                    ) +
+                    geom_node_point(
+                      aes(colour = Phylum),
+                      size = 0.55,
+                      na.rm = TRUE
+                    ) +
+                    geom_text(
+                      data = tip_data,
+                      aes(
+                        x = x * 1.12,
+                        y = y * 1.12,
+                        label = Genus,
+                        angle = label_angle,
+                        hjust = hjust
+                      ),
+                      inherit.aes = FALSE,
+                      size = 1.7,
+                      fontface = "italic"
+                    ) +
+                    scale_colour_manual(
+                      values = phylum_cols,
+                      name = "Phylum",
+                      na.value = "grey70"
+                    ) +
+                    coord_fixed(
+                      clip = "off"
+                    ) +
+                    theme_void() +
+                    theme(
+                      legend.position = "right",
+                      legend.title = element_text(
+                        size = 8,
+                        face = "bold"
+                      ),
+                      legend.text = element_text(size = 7),
+                      plot.margin = margin(50, 120, 50, 120)
+                    )                  
+                  p_base                  
+                  phylum_ranges <- tip_data %>%
+                    dplyr::filter(!is.na(Phylum)) %>%
+                    dplyr::group_by(Phylum) %>%
+                    dplyr::summarise(
+                      xmin = min(x),
+                      xmax = max(x),
+                      ymin = min(y),
+                      ymax = max(y),
+                      .groups = "drop"
+                    )                  
+                  tip_sector <- tip_data %>%
+                    dplyr::filter(!is.na(Phylum)) %>%
+                    dplyr::mutate(
+                      theta = atan2(y, x),
+                      theta = ifelse(theta < 0, theta + 2*pi, theta)
+                    )                  
+                  head(
+                    tip_sector[, c("Genus", "Phylum", "theta")]
+                  )                  
+                  phylum_sector <- tip_sector %>%
+                    dplyr::group_by(Phylum) %>%
+                    dplyr::summarise(
+                      theta_start = min(theta),
+                      theta_end = max(theta),
+                      .groups = "drop"
+                    )                  
+                  phylum_sector                  
+                  table(tip_sector$Phylum)                  
+                  sector_points <- phylum_sector %>%
+                    dplyr::rowwise() %>%
+                    dplyr::mutate(
+                      theta_seq = list(
+                        seq(theta_start, theta_end, length.out = 150)
+                      )
+                    ) %>%
+                    tidyr::unnest(theta_seq)                  
+                  sector_points <- sector_points %>%
+                    dplyr::mutate(
+                      inner_r = 0.28,
+                      outer_r = 0.98,
+                      
+                      outer_x = outer_r * cos(theta_seq),
+                      outer_y = outer_r * sin(theta_seq),
+                      
+                      inner_x = inner_r * cos(theta_seq),
+                      inner_y = inner_r * sin(theta_seq)
+                    )                  
+                  sector_polygons <- sector_points %>%
+                    dplyr::group_by(Phylum) %>%
+                    dplyr::group_modify(
+                      function(.x, .y) {
+                        
+                        outer_part <- .x %>%
+                          dplyr::arrange(theta_seq) %>%
+                          dplyr::transmute(
+                            x = outer_x,
+                            y = outer_y
+                          )
+                        sector_polygons <- sector_points %>%
+                          dplyr::group_by(Phylum) %>%
+                          dplyr::group_modify(
+                            function(.x, .y) {
+                              
+                              outer_part <- .x %>%
+                                dplyr::arrange(theta_seq) %>%
+                                dplyr::transmute(
+                                  x = outer_x,
+                                  y = outer_y
+                                )
+                              
+                              inner_part <- .x %>%
+                                dplyr::arrange(dplyr::desc(theta_seq)) %>%
+                                dplyr::transmute(
+                                  x = inner_x,
+                                  y = inner_y
+                                )
+                              
+                              dplyr::bind_rows(
+                                outer_part,
+                                inner_part
+                              )
+                            }
+                          ) %>%
+                          dplyr::ungroup()                        
+                        head(sector_polygons)                        
+                        p_clade <- ggraph(
+                          tax_graph,
+                          layout = "dendrogram",
+                          circular = TRUE
+                        ) +
+                          
+                          geom_polygon(
+                            data = sector_polygons,
+                            aes(
+                              x = x,
+                              y = y,
+                              group = Phylum,
+                              fill = Phylum
+                            ),
+                            inherit.aes = FALSE,
+                            alpha = 0.14,
+                            colour = NA
+                          ) +
+                          
+                          geom_edge_diagonal(
+                            colour = "grey25",
+                            linewidth = 0.30,
+                            alpha = 0.9
+                          ) +
+                          
+                          geom_node_point(
+                            aes(colour = Phylum),
+                            size = 0.55,
+                            na.rm = TRUE
+                          ) +
+                          
+                          geom_text(
+                            data = tip_data,
+                            aes(
+                              x = x * 1.12,
+                              y = y * 1.12,
+                              label = Genus,
+                              angle = label_angle,
+                              hjust = hjust
+                            ),
+                            inherit.aes = FALSE,
+                            size = 1.8,
+                            fontface = "italic"
+                          ) +
+                          
+                          scale_fill_manual(
+                            values = phylum_cols,
+                            name = "Phylum"
+                          ) +
+                          
+                          scale_colour_manual(
+                            values = phylum_cols,
+                            name = "Phylum"
+                          ) +
+                          
+                          coord_fixed(
+                            clip = "off"
+                          ) +
+                          
+                          theme_void() +
+                          
+                          theme(
+                            legend.position = "right",
+                            legend.title = element_text(
+                              size = 8,
+                              face = "bold"
+                            ),
+                            legend.text = element_text(size = 7),
+                            plot.margin = margin(
+                              50, 130, 50, 130
+                            )
+                          )                        
+                        p_clade                        
+                        ring_plot_data <- ring_plot_data %>%
+                          dplyr::mutate(
+                            sample_no = as.numeric(Sample),
+                            
+                            angle = 2 * pi *
+                              (leaf_no - 0.5) /
+                              length(unique(leaf_no)),
+                            
+                            radius = 1.23 + (sample_no - 1) * 0.045,
+                            
+                            ring_x = radius * cos(angle),
+                            ring_y = radius * sin(angle)
+                          )                        
+                        ring_plot_data$Abundance_plot <- sqrt(
+                          ring_plot_data$Abundance
+                        )                        
+                        p_tracks <- p_clade +
+                          
+                          geom_point(
+                            data = ring_plot_data,
+                            aes(
+                              x = ring_x,
+                              y = ring_y,
+                              size = Abundance_plot,
+                              fill = Sample
+                            ),
+                            inherit.aes = FALSE,
+                            shape = 21,
+                            colour = "white",
+                            stroke = 0.12,
+                            alpha = 0.9
+                          ) +
+                          
+                          scale_size_continuous(
+                            range = c(0.15, 1.7),
+                            name = "Abundance"
+                          ) +
+                          
+                          guides(
+                            size = guide_legend(
+                              order = 3
+                            ),
+                            fill = guide_legend(
+                              title = "Sample",
+                              order = 2,
+                              override.aes = list(size = 3)
+                            ),
+                            colour = guide_legend(
+                              title = "Phylum",
+                              order = 1
+                            )
+                          ) +
+                          
+                          coord_fixed(
+                            xlim = c(-1.75, 1.75),
+                            ylim = c(-1.75, 1.75),
+                            clip = "off"
+                          ) +
+                          
+                          theme(
+                            legend.position = "right",
+                            legend.box = "vertical",
+                            plot.margin = margin(
+                              50, 120, 50, 120
+                            )
+                          )                        
+                        p_tracks
+                        x = x * 1.12,
+                        y = y * 1.12
+                        x = x * 1.50,                        
+                        geom_text(
+                          data = tip_data,
+                          aes(
+                            x = x * 1.50,
+                            y = y * 1.50,
+                            label = Genus,
+                            angle = label_angle,
+                            hjust = hjust
+                          ),
+                          inherit.aes = FALSE,
+                          size = 1.8,
+                          fontface = "italic"
+                        )                        
+                        x = x * 1.50,                        
+                        p_tracks                        
+                        p_final <- ggraph(
+                          tax_graph,
+                          layout = "dendrogram",
+                          circular = TRUE
+                        ) +
+                          
+                          # Phylum background sectors
+                          geom_polygon(
+                            data = sector_polygons,
+                            aes(
+                              x = x,
+                              y = y,
+                              group = Phylum,
+                              fill = Phylum
+                            ),
+                            inherit.aes = FALSE,
+                            alpha = 0.14,
+                            colour = NA
+                          ) +
+                          
+                          # Tree branches
+                          geom_edge_diagonal(
+                            colour = "grey25",
+                            linewidth = 0.30,
+                            alpha = 0.9
+                          ) +
+                          
+                          # Tree nodes
+                          geom_node_point(
+                            aes(colour = Phylum),
+                            size = 0.5,
+                            na.rm = TRUE
+                          ) +
+                          
+                          # Five sample abundance tracks
+                          geom_point(
+                            data = ring_plot_data,
+                            aes(
+                              x = ring_x,
+                              y = ring_y,
+                              size = Abundance_plot,
+                              fill = Sample
+                            ),
+                            inherit.aes = FALSE,
+                            shape = 21,
+                            colour = "white",
+                            stroke = 0.12,
+                            alpha = 0.9
+                          ) +
+                          
+                          # Genus names OUTSIDE the sample tracks
+                          geom_text(
+                            data = tip_data,
+                            aes(
+                              x = x * 1.50,
+                              y = y * 1.50,
+                              label = Genus,
+                              angle = label_angle,
+                              hjust = hjust
+                            ),
+                            inherit.aes = FALSE,
+                            size = 1.8,
+                            fontface = "italic"
+                          ) +
+                          
+                          scale_colour_manual(
+                            values = phylum_cols,
+                            name = "Phylum",
+                            na.value = "grey70"
+                          ) +
+                          
+                          scale_fill_manual(
+                            values = c(
+                              phylum_cols,
+                              DF_01 = "#E69F00",
+                              DF_02 = "#56B4E9",
+                              DF_03 = "#009E73",
+                              DF_04 = "#CC79A7",
+                              DF_05 = "#0072B2"
+                            )
+                          ) +
+                          
+                          scale_size_continuous(
+                            range = c(0.15, 1.6),
+                            name = "Abundance"
+                          ) +
+                          
+                          coord_fixed(
+                            clip = "off"
+                          ) +
+                          
+                          theme_void() +
+                          
+                          theme(
+                            legend.position = "right",
+                            legend.title = element_text(
+                              size = 8,
+                              face = "bold"
+                            ),
+                            legend.text = element_text(size = 7),
+                            plot.margin = margin(
+                              80, 160, 80, 160
+                            )
+                          )                        
+                        p_final                        
+                        sample_shapes <- c(
+                          DF_01 = 21,
+                          DF_02 = 22,
+                          DF_03 = 23,
+                          DF_04 = 24,
+                          DF_05 = 25
+                        )                        
+                        geom_point(
+                          data = ring_plot_data,
+                          aes(
+                            x = ring_x,
+                            y = ring_y,
+                            size = Abundance_plot,
+                            fill = Sample,
+                            shape = Sample
+                          ),
+                          inherit.aes = FALSE,
+                          colour = "grey20",
+                          stroke = 0.18,
+                          alpha = 0.9
+                        )
+                        scale_shape_manual(
+                          values = sample_shapes,
+                          name = "Sample"
+                        )                      
+                        ring_plot_data <- ring_plot_data %>%
+                          dplyr::mutate(
+                            sample_no = as.numeric(Sample),
+                            
+                            radius = 1.18 + (sample_no - 1) * 0.035,
+                            
+                            ring_x = radius * cos(angle),
+                            ring_y = radius * sin(angle)
+                          )                        
+                        head(
+                          ring_plot_data[
+                            ,
+                            c(
+                              "Sample",
+                              "Abundance",
+                              "ring_x",
+                              "ring_y"
+                            )
+                          ]
+                        )                        
+                        if (!requireNamespace("BiocManager", quietly = TRUE)) {
+                          install.packages("BiocManager")
+                        }                        
+                        BiocManager::install(
+                          c("ggtree", "treeio"),
+                          ask = FALSE,
+                          update = FALSE
+                        )                        
+                        library(ape)                        
+                        library(ggtree)                        
+                        library(dplyr)                        
+                        tip_map <- tree_tax %>%
+                          dplyr::distinct(G, Genus, Phylum) %>%
+                          dplyr::mutate(
+                            tip_id = paste0(
+                              "tip_",
+                              sprintf("%03d", dplyr::row_number())
+                            )
+                          )                        
+                        tip_lookup <- setNames(
+                          tip_map$tip_id,
+                          tip_map$G
+                        )                        
+                        children <- split(
+                          tree_edges$to,
+                          tree_edges$from
+                        )                        
+                        make_newick <- function(node) {
+                          
+                          kids <- children[[node]]
+                          
+                          if (is.null(kids) || length(kids) == 0) {
+                            
+                            id <- unname(tip_lookup[node])
+                            
+                            if (is.na(id)) {
+                              stop(
+                                "Terminal node not found: ",
+                                node
+                              )
+                            }
+                            
+                            return(id)
+                          }                        
+                          make_newick <- function(node) {
+                            
+                            kids <- children[[node]]
+                            
+                            if (is.null(kids) || length(kids) == 0) {
+                              
+                              id <- unname(tip_lookup[node])
+                              
+                              if (length(id) == 0 || is.na(id)) {
+                                stop(paste("Terminal node not found:", node))
+                              }
+                              
+                              return(id)
+                            }
+                            
+                            child_text <- vapply(
+                              kids,
+                              make_newick,
+                              character(1)
+                            )
+                            
+                            paste0(
+                              "(",
+                              paste(child_text, collapse = ","),
+                              ")"
+                            )
+                          }                          
+                          newick_text <- paste0(make_newick("DFU_16S"), ";")                          
+                          phy <- ape::read.tree(text = newick_text)                          
+                          phy                          
+                          ape::Ntip(phy)                          
+                          head(phy$tip.label)                          
+                          tip_meta <- tip_map %>%
+                            dplyr::transmute(
+                              label = tip_id,
+                              Genus = Genus,
+                              Phylum = Phylum
+                            )                          
+                          head(tip_meta)                          
+                          p_fan <- ggtree(
+                            phy,
+                            layout = "fan",
+                            open.angle = 60,
+                            linewidth = 0.35
+                          ) %<+% tip_meta +
+                            
+                            geom_tiplab2(
+                              aes(label = Genus),
+                              size = 2.2,
+                              fontface = "italic",
+                              offset = 0.25,
+                              align = FALSE
+                            ) +
+                            
+                            theme(
+                              plot.margin = margin(
+                                40, 100, 40, 100
+                              )
+                            )                          
+                          p_fan                          
+                          ggsave(
+                            "DFU_open_fan_test.pdf",
+                            p_fan,
+                            width = 12,
+                            height = 11,
+                            units = "in"
+                          )                          
+                          phylum_nodes <- tip_meta %>%
+                            dplyr::group_by(Phylum) %>%
+                            dplyr::summarise(
+                              node = if (dplyr::n() == 1) {
+                                match(label[1], phy$tip.label)
+                              } else {
+                                ape::getMRCA(phy, label)
+                              },
+                              .groups = "drop"
+                            )                          
+                          phylum_nodes                          
+                          phylum_cols2 <- c(
+                            "Actinobacteriota" = "#E69F00",
+                            "Bacteroidota"     = "#CC79A7",
+                            "Firmicutes"       = "#D55E00",
+                            "Fusobacteriota"   = "#7A9A01",
+                            "Proteobacteria"   = "#009E9A"
+                          )                          
+                          act_node <- phylum_nodes$node[
+                            phylum_nodes$Phylum == "Actinobacteriota"
+                          ]                          
+                          act_node                          
+                          p_test <- p_fan +
+                            geom_hilight(
+                              node = act_node,
+                              fill = phylum_cols2["Actinobacteriota"],
+                              alpha = 0.25,
+                              extend = 0.3
+                            )                          
+                          p_test                          
+                          Q                        
+                          print(p_test)                          
+                          print(p_fan)                          
+                          graphics.off()                          
+                          plot(1:10, 1:10)                          
+                          windows()                          
+                          plot(1:10, 1:10)                          
+                          windows(width = 12, height = 10)                          
+                          print(p_fan)                          
+                          print(p_fan)                          
+                          windows()                          
+                          plot(1:10, 1:10)                          
+                          windows(width = 12, height = 10)                          
+                          print(p_fan)                          
+                          phylum_nodes                          
+                          phylum_nodes                         
+                          p_colored <- p_fan
+                          
+                          for (i in seq_len(nrow(phylum_nodes))) {
+                            
+                            ph <- phylum_nodes$Phylum[i]
+                            nd <- phylum_nodes$node[i]
+                            
+                            if (ph %in% names(phylum_cols2)) {
+                              
+                              p_colored <- p_colored +
+                                geom_hilight(
+                                  node = nd,
+                                  fill = phylum_cols2[ph],
+                                  alpha = 0.28,
+                                  extend = 0.35
+                                )
+                            }
+                          }                          
+                          exists("p_fan")                         
+                          exists("phylum_nodes")                          
+                          exists("phylum_cols2")                          
+                          p_colored <- p_fan
+                          
+                          for (i in seq_len(nrow(phylum_nodes))) {
+                            
+                            ph <- as.character(phylum_nodes$Phylum[i])
+                            nd <- phylum_nodes$node[i]
+                            
+                            if (!is.na(nd) && ph %in% names(phylum_cols2)) {
+                              
+                              p_colored <- p_colored +
+                                ggtree::geom_hilight(
+                                  node = nd,
+                                  fill = unname(phylum_cols2[ph]),
+                                  alpha = 0.25,
+                                  extend = 0.30
+                                )
+                            }
+                          }                          
+                          exists("p_colored")                          
+                          c(
+                            p_fan = exists("p_fan"),
+                            phylum_nodes = exists("phylum_nodes"),
+                            phylum_cols2 = exists("phylum_cols2")
+                          )                         
+                          p_colored <- p_fan
+                          for (i in 1:nrow(phylum_nodes)) {
+                            
+                            ph <- as.character(phylum_nodes$Phylum[i])
+                            nd <- phylum_nodes$node[i]
+                            
+                            if (!is.na(nd) && ph %in% names(phylum_cols2)) {
+                              
+                              p_colored <- p_colored +
+                                geom_hilight(
+                                  node = nd,
+                                  fill = phylum_cols2[[ph]],
+                                  alpha = 0.25,
+                                  extend = 0.30
+                                )
+                            }
+                          }                          
+                          windows(wid                          
+                                  p_test
+                                  print(p_fan)
+                                  print(p_colored)                                  
+                                  p_test                                  
+                                  print(p_fan)                                  
+                                  print(p_colored)                                  
+                                  p_colored <- p_fan                                  
+                                  exists("p_colored")                                  
+                                  windows(width = 12, height = 10)                                  
+                                  print(p_colored)                                  
+                                  exists("p_fan")                                  
+                                  p_colored <- p_fan                                  
+                                  exists("p_colored")                                  
+                                  act_node <- phylum_nodes$node[
+                                    phylum_nodes$Phylum == "Actinobacteriota"
+                                  ]                                  
+                                  act_node                                  
+                                  p_colored <- p_fan +
+                                    geom_hilight(
+                                      node = act_node,
+                                      fill = "#E69F00",
+                                      alpha = 0.25,
+                                      extend = 0.30
+                                    )                                  
+                                  library(ggtree)                                  
+                                  exists("geom_hilight")                                  
+                                  p_colored <- p_fan +
+                                    ggtree::geom_hilight(
+                                      node = act_node,
+                                      fill = "#E69F00",
+                                      alpha = 0.25,
+                                      extend = 0.30
+                                    )                                  
+                                  windows(width = 12, height = 10)                                  
+                                  print(p_colored)                                  
+                                  "geom_hilight" %in% getNamespaceExports("ggtree")                                  
+                                  phylum_nodes                                  
+                                  p_colored <- p_fan                                  
+                                  for (i in seq_len(nrow(phylum_nodes))) {
+                                    
+                                    ph <- as.character(phylum_nodes$Phylum[i])
+                                    nd <- phylum_nodes$node[i]
+                                    
+                                    if (!is.na(nd) && ph %in% names(phylum_cols2)) {
+                                      
+                                      p_colored <- p_colored +
+                                        ggtree::geom_hilight(
+                                          node = nd,
+                                          fill = unname(phylum_cols2[ph]),
+                                          alpha = 0.25,
+                                          extend = 0.30
+                                        )
+                                    }
+                                  }                                  
+                                  windows(width = 12, height = 10)                                  
+                                  print(p_colored)                                  
+                                  phylum_nodes                                  
+                                  fan_abund <- genus_abund %>%
+                                    dplyr::inner_join(
+                                      tip_map %>%
+                                        dplyr::select(tip_id, Genus),
+                                      by = "Genus"
+                                    ) %>%
+                                    tidyr::pivot_longer(
+                                      cols = c(DF_01, DF_02, DF_03, DF_04, DF_05),
+                                      names_to = "Sample",
+                                      values_to = "Abundance"
+                                    ) %>%
+                                    dplyr::rename(
+                                      label = tip_id
+                                    )                                  
+                                  fan_abund$Sample <- factor(
+                                    fan_abund$Sample,
+                                    levels = c(
+                                      "DF_01",
+                                      "DF_02",
+                                      "DF_03",
+                                      "DF_04",
+                                      "DF_05"
+                                    )
+                                  )                                  
+                                  head(fan_abund)                                  
+                                  table(fan_abund$Sample)                                  
+                                  length(unique(fan_abund$label))                                  
+                                  ape::Ntip(phy)                                  
+                                  if (!requireNamespace("ggtreeExtra", quietly = TRUE)) {
+                                    BiocManager::install("ggtreeExtra", ask = FALSE, update = FALSE)
+                                  }                                  
+                                  library(ggtreeExtra)                                  
+                                  "geom_fruit" %in% getNamespaceExports("ggtreeExtra")                                  
+                                  fan_abund$Abundance_plot <- log10(fan_abund$Abundance + 1)                                  
+                                  p_rings <- p_colored +
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund,
+                                      geom = geom_tile,
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      orientation = "y",
+                                      offset = 0.05,
+                                      pwidth = 0.18,
+                                      width = 0.8
+                                    )                                  
+                                  library(ggplot2)                                  
+                                  exists("geom_tile")                                  
+                                  p_rings <- p_colored +
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund,
+                                      geom = ggplot2::geom_tile,
+                                      mapping = ggplot2::aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      orientation = "y",
+                                      offset = 0.05,
+                                      pwidth = 0.18,
+                                      width = 0.8
+                                    )                                  
+                                  windows(width = 13, height = 11)                                  
+                                  library(ggplot2)  
+                                  library(ggtreeExtra)                                  
+                                  p_rings <- p_colored +
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund,
+                                      geom = geom_tile,
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      offset = 0.05,
+                                      pwidth = 0.18,
+                                      width = 0.8
+                                    )                                  
+                                  windows(width = 13, height = 11)                                  
+                                  print(p_rings)                                  
+                                  if (!requireNamespace("ggnewscale", quietly = TRUE)) {
+                                    install.packages("ggnewscale")
+                                  }
+                                  library(ggnewscale)                                  
+                                  p_final_fan <- p_colored +
+                                    
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund,
+                                      geom = geom_tile,
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      offset = 0.05,
+                                      pwidth = 0.18,
+                                      width = 0.8
+                                    ) +
+                                    
+                                    scale_fill_viridis_c(
+                                      name = "Abundance\n(log10 + 1)",
+                                      option = "C"
+                                    ) +
+                                    
+                                    theme(
+                                      legend.position = "right",
+                                      legend.title = element_text(
+                                        size = 8,
+                                        face = "bold"
+                                      ),
+                                      legend.text = element_text(size = 7)
+                                    )                                 
+                                  windows(width = 13, height = 11)                                  
+                                  print(p_final_fan)                                  
+                                  log10(Abundance + 1)                                  
+                                  p_pub <- p_final_fan +
+                                    theme(
+                                      legend.position = c(0.16, 0.18),
+                                      legend.justification = c(0, 0),
+                                      
+                                      legend.background = element_rect(
+                                        fill = "white",
+                                        colour = NA
+                                      ),
+                                      
+                                      legend.title = element_text(
+                                        size = 8,
+                                        face = "bold"
+                                      ),
+                                      
+                                      legend.text = element_text(
+                                        size = 7
+                                      ),
+                                      
+                                      plot.margin = margin(
+                                        20, 40, 20, 40
+                                      )
+                                    )                                 
+                                  windows(width = 14, height = 12)                                  
+                                  print(p_pub)                                  
+                                  ggsave(
+                                    filename = "DFU_16S_open_taxonomic_cladogram.pdf",
+                                    plot = p_pub,
+                                    width = 180,
+                                    height = 170,
+                                    units = "mm",
+                                    device = cairo_pdf
+                                  )                                  
+                                  ggsave(
+                                    filename = "DFU_16S_open_taxonomic_cladogram.tiff",
+                                    plot = p_pub,
+                                    width = 180,
+                                    height = 170,
+                                    units = "mm",
+                                    dpi = 600,
+                                    compression = "lzw"
+                                  )                                  
+                                  phylum_labels <- tip_meta %>%
+                                    dplyr::group_by(Phylum) %>%
+                                    dplyr::summarise(
+                                      tips = paste(label, collapse = ","),
+                                      .groups = "drop"
+                                    ) %>%
+                                    dplyr::left_join(
+                                      phylum_nodes,
+                                      by = "Phylum"
+                                    )                                  
+                                  phylum_labels                                  
+                                  p_labeled <- p_pub +
+                                    geom_cladelab(
+                                      data = phylum_nodes,
+                                      mapping = aes(
+                                        node = node,
+                                        label = Phylum
+                                      ),
+                                      align = TRUE,
+                                      offset = 0.15,
+                                      fontsize = 2.7,
+                                      fontface = "bold",
+                                      barsize = 0.4
+                                    )                                  
+                                  windows(width = 14, height = 12)                                  
+                                  print(p_labeled)                                  
+                                  fan_abund$Sample <- factor(
+                                    fan_abund$Sample,
+                                    levels = c("DF_01", "DF_02", "DF_03", "DF_04", "DF_05")
+                                  )                                  
+                                  p_tracklabel <- p_colored +
+                                    
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund,
+                                      geom = geom_tile,
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      offset = 0.05,
+                                      pwidth = 0.18,
+                                      width = 0.8,
+                                      
+                                      axis.params = list(
+                                        axis = "x",
+                                        text.size = 2.4,
+                                        text.angle = 90,
+                                        hjust = 1,
+                                        vjust = 0.5
+                                      )
+                                    ) +
+                                    
+                                    scale_fill_viridis_c(
+                                      name = "Abundance\nlog10(x + 1)",
+                                      option = "C"
+                                    )                                
+                                  windows(width = 14, height = 12)                                  
+                                  print(p_tracklabel)                                  
+                                  p_clean <- p_tracklabel +
+                                    theme(
+                                      legend.position = c(0.16, 0.18),
+                                      legend.justification = c(0, 0),
+                                      
+                                      legend.background = element_rect(
+                                        fill = "white",
+                                        colour = "grey80",
+                                        linewidth = 0.25
+                                      ),
+                                      
+                                      legend.title = element_text(
+                                        size = 8,
+                                        face = "bold"
+                                      ),
+                                      
+                                      legend.text = element_text(
+                                        size = 7
+                                      ),
+                                      
+                                      plot.margin = margin(
+                                        25, 45, 25, 45
+                                      )
+                                    )                                  
+                                  windows(width = 14, height = 12)                                  
+                                  print(p_clean)                                  
+                                  ggsave(
+                                    "DFU_final_taxonomic_cladogram.pdf",
+                                    plot = p_clean,
+                                    width = 200,
+                                    height = 180,
+                                    units = "mm",
+                                    device = cairo_pdf
+                                  )                                  
+                                  ggsave(
+                                    "DFU_final_taxonomic_cladogram.tiff",
+                                    plot = p_clean,
+                                    width = 200,
+                                    height = 180,
+                                    units = "mm",
+                                    dpi = 600,
+                                    compression = "lzw"
+                                  )                                  
+                                  ape::Ntip(phy)                                  
+                                  nrow(tip_meta)                                  
+                                  length(unique(fan_abund$label))                                  
+                                  ape::Ntip(phy)                                  
+                                  table(fan_abund$Sample)                                  
+                                  sum(is.na(fan_abund$Abundance))                                  
+                                  sort(unique(tip_meta$Phylum))                                  
+                                  table(tip_meta$Phylum)                                  
+                                  pastel_phylum <- c(
+                                    "Proteobacteria"   = "#C9E3F8",
+                                    "Bacteroidota"     = "#D5F0D0",
+                                    "Firmicutes"       = "#F8CACA",
+                                    "Actinobacteriota" = "#DDD2F4",
+                                    "Fusobacteriota"   = "#F8E7A8"
+                                  )                                  
+                                  p_new <- ggtree(
+                                    phy,
+                                    layout = "fan",
+                                    open.angle = 70,
+                                    linewidth = 0.35,
+                                    colour = "grey20"
+                                  ) %<+% tip_meta                                  
+                                  for (i in seq_len(nrow(phylum_nodes))) {
+                                    
+                                    ph <- as.character(phylum_nodes$Phylum[i])
+                                    nd <- phylum_nodes$node[i]
+                                    
+                                    if (!is.na(nd) && ph %in% names(pastel_phylum)) {
+                                      
+                                      p_new <- p_new +
+                                        ggtree::geom_hilight(
+                                          node = nd,
+                                          fill = pastel_phylum[[ph]],
+                                          alpha = 0.75,
+                                          extend = 0.15
+                                        )
+                                    }
+                                  }                                  
+                                  p_new <- p_new +
+                                    geom_tree(
+                                      linewidth = 0.35,
+                                      colour = "grey20"
+                                    )                                  
+                                  p_new <- p_new +
+                                    geom_tiplab2(
+                                      aes(label = Genus),
+                                      size = 2.6,
+                                      fontface = "italic",
+                                      colour = "grey10",
+                                      offset = 0.08,
+                                      align = FALSE
+                                    )                                  
+                                  windows(width = 14, height = 13)                                  
+                                  print(p_new)                                  
+                                  fan_abund$Abundance_plot <- log10(
+                                    fan_abund$Abundance + 1
+                                  )                                  
+                                  fan_abund$Sample <- factor(
+                                    fan_abund$Sample,
+                                    levels = c(
+                                      "DF_01",
+                                      "DF_02",
+                                      "DF_03",
+                                      "DF_04",
+                                      "DF_05"
+                                    )
+                                  )                                  
+                                  p_new_rings <- p_new +
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund,
+                                      geom = geom_tile,
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      offset = 0.18,
+                                      pwidth = 0.13,
+                                      width = 0.82,
+                                      
+                                      axis.params = list(
+                                        axis = "x",
+                                        text.size = 2.5,
+                                        text.angle = 90,
+                                        hjust = 1
+                                      )
+                                    ) +
+                                    
+                                    scale_fill_gradientn(
+                                      colours = c(
+                                        "#F7F4F9",
+                                        "#E7D4EA",
+                                        "#D4A6D3",
+                                        "#C97BAA",
+                                        "#F1B38D",
+                                        "#F6DB83"
+                                      ),
+                                      name = "Abundance\nlog10(x + 1)"
+                                    )                                  
+                                  offset = 0.18                                  
+                                  p_final2 <- p_new_rings +
+                                    theme(
+                                      legend.position = c(0.16, 0.20),
+                                      legend.justification = c(0, 0),
+                                      
+                                      legend.background = element_rect(
+                                        fill = "white",
+                                        colour = NA
+                                      ),
+                                      
+                                      legend.title = element_text(
+                                        size = 9,
+                                        face = "bold"
+                                      ),
+                                      
+                                      legend.text = element_text(
+                                        size = 8
+                                      ),
+                                      
+                                      plot.margin = margin(
+                                        30, 60, 30, 60
+                                      )
+                                    )                                  
+                                  windows(width = 15, height = 14)                                  
+                                  print(p_final2)
+                                  ggsave(
+                                    "DFU_pastel_taxonomic_cladogram.pdf",
+                                    p_final2,
+                                    width = 240,
+                                    height = 220,
+                                    units = "mm",
+                                    device = cairo_pdf
+                                  )
+                                  ggsave(
+                                    "DFU_pastel_taxonomic_cladogram_600dpi.tiff",
+                                    p_final2,
+                                    width = 240,
+                                    height = 220,
+                                    units = "mm",
+                                    dpi = 600,
+                                    compression = "lzw"
+                                  )                                  
+                                  library(ggtree)                                  
+                                  library(ggtreeExtra)                                  
+                                  library(ggnewscale)                                  
+                                  library(ggplot2)                                  
+                                  library(dplyr)                                  
+                                  library(scales)                                  
+                                  pastel_phylum <- c(
+                                    "Proteobacteria"   = "#BFD7EA",
+                                    "Bacteroidota"     = "#CFE8CF",
+                                    "Firmicutes"       = "#F3C6C6",
+                                    "Actinobacteriota" = "#D8CCE8",
+                                    "Fusobacteriota"   = "#F2E0A6"
+                                  )                                  
+                                  p_nat <- ggtree(
+                                    phy,
+                                    layout = "fan",
+                                    open.angle = 85,
+                                    linewidth = 0.32,
+                                    colour = "#303030"
+                                  ) %<+% tip_meta                                  
+                                  for (i in seq_len(nrow(phylum_nodes))) {
+                                    
+                                    ph <- as.character(phylum_nodes$Phylum[i])
+                                    nd <- phylum_nodes$node[i]
+                                    
+                                    if (!is.na(nd) && ph %in% names(pastel_phylum)) {
+                                      
+                                      p_nat <- p_nat +
+                                        ggtree::geom_hilight(
+                                          node = nd,
+                                          fill = pastel_phylum[[ph]],
+                                          alpha = 0.65,
+                                          extend = 0.12
+                                        )
+                                    }
+                                  }                                  
+                                  p_nat <- p_nat +
+                                    geom_tree(
+                                      linewidth = 0.32,
+                                      colour = "#303030"
+                                    )                                  
+                                  p_nat <- p_nat +
+                                    geom_tiplab2(
+                                      aes(label = Genus),
+                                      size = 2.15,
+                                      fontface = "italic",
+                                      colour = "#202020",
+                                      offset = 0.04,
+                                      align = FALSE
+                                    )                                  
+                                  windows(width = 15, height = 14)                                  
+                                  print(p_nat)                                  
+                                  fan_abund <- fan_abund %>%
+                                    mutate(
+                                      Sample = factor(
+                                        Sample,
+                                        levels = c(
+                                          "DF_01",
+                                          "DF_02",
+                                          "DF_03",
+                                          "DF_04",
+                                          "DF_05"
+                                        )
+                                      ),
+                                      Abundance_plot = log10(Abundance + 1)
+                                    )                                  
+                                  p_nat2 <- p_nat +
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund,
+                                      geom = geom_tile,
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      
+                                      offset = 0.32,
+                                      pwidth = 0.10,
+                                      width = 0.88,
+                                      
+                                      axis.params = list(
+                                        axis = "x",
+                                        text.size = 2.2,
+                                        text.angle = 90,
+                                        hjust = 1,
+                                        vjust = 0.5
+                                      )
+                                    ) +
+                                    
+                                    scale_fill_gradientn(
+                                      colours = c(
+                                        "#FAF7F5",
+                                        "#E8D9E8",
+                                        "#D3B4D8",
+                                        "#C18ABF",
+                                        "#E6A58E",
+                                        "#F3CF83"
+                                      ),
+                                      name = expression(log[10](Abundance + 1))
+                                    )                                  
+                                  offset = 0.32                                  
+                                  pwidth = 0.10                                  
+                                  p_nature <- p_nat2 +
+                                    theme(
+                                      legend.position = c(0.18, 0.17),
+                                      legend.justification = c(0, 0),
+                                      
+                                      legend.background = element_blank(),
+                                      legend.key = element_blank(),
+                                      
+                                      legend.title = element_text(
+                                        size = 8,
+                                        face = "bold"
+                                      ),
+                                      
+                                      legend.text = element_text(
+                                        size = 7
+                                      ),
+                                      
+                                      plot.margin = margin(
+                                        12, 20, 12, 20,
+                                        unit = "mm"
+                                      )
+                                    ) +
+                                    
+                                    guides(
+                                      fill = guide_colourbar(
+                                        title.position = "top",
+                                        title.hjust = 0,
+                                        barwidth = unit(3, "mm"),
+                                        barheight = unit(25, "mm"),
+                                        frame.colour = "grey50",
+                                        ticks.colour = "grey40"
+                                      )
+                                    )                                  
+                                  windows(width = 16, height = 15)                                  
+                                  print(p_nature)                                  
+                                  ggsave(
+                                    filename = "DFU_taxonomic_cladogram_Nature.pdf",
+                                    plot = p_nature,
+                                    width = 183,
+                                    height = 183,
+                                    units = "mm",
+                                    device = cairo_pdf,
+                                    bg = "white"
+                                  )                                  
+                                  ggsave(
+                                    filename = "DFU_taxonomic_cladogram_Nature.tiff",
+                                    plot = p_nature,
+                                    width = 183,
+                                    height = 183,
+                                    units = "mm",
+                                    dpi = 600,
+                                    compression = "lzw",
+                                    bg = "white"
+                                  )                                  
+                                  windows(width = 16, height = 15)                                  
+                                  print(p_nature)                                  
+                                  ggsave(
+                                    "DFU_taxonomic_cladogram_Nature.pdf",
+                                    plot = p_nature,
+                                    width = 183,
+                                    height = 183,
+                                    units = "mm",
+                                    device = cairo_pdf,
+                                    bg = "white"
+                                  )                                  
+                                  grep(
+                                    "Solobacterium",
+                                    tip_meta$Genus,
+                                    value = TRUE,
+                                    ignore.case = TRUE
+                                  )                                  
+                                  pastel_phylum <- c(
+                                    "Proteobacteria"   = "#B8D8EB",
+                                    "Bacteroidota"     = "#CBE6C7",
+                                    "Firmicutes"       = "#F2C5C3",
+                                    "Actinobacteriota" = "#D9C9E8",
+                                    "Fusobacteriota"   = "#F4DEA3"
+                                  )                                  
+                                  p_big <- ggtree(
+                                    phy,
+                                    layout = "fan",
+                                    open.angle = 95,
+                                    linewidth = 0.45,
+                                    colour = "#252525"
+                                  ) %<+% tip_meta                                  
+                                  for (i in seq_len(nrow(phylum_nodes))) {
+                                    
+                                    ph <- as.character(phylum_nodes$Phylum[i])
+                                    nd <- phylum_nodes$node[i]
+                                    
+                                    if (!is.na(nd) && ph %in% names(pastel_phylum)) {
+                                      
+                                      p_big <- p_big +
+                                        ggtree::geom_hilight(
+                                          node = nd,
+                                          fill = pastel_phylum[[ph]],
+                                          alpha = 0.70,
+                                          extend = 0.08
+                                        )
+                                    }
+                                  }                                  
+                                  p_big <- p_big +
+                                    geom_tree(
+                                      linewidth = 0.45,
+                                      colour = "#252525"
+                                    )                                  
+                                  p_big <- p_big +
+                                    geom_tiplab2(
+                                      aes(label = Genus),
+                                      size = 3.2,
+                                      fontface = "italic",
+                                      colour = "#111111",
+                                      offset = 0.08,
+                                      align = FALSE
+                                    )                                  
+                                  windows(width = 18, height = 16)                                  
+                                  print(p_big)                                  
+                                  fan_abund <- fan_abund %>%
+                                    dplyr::mutate(
+                                      Sample = factor(
+                                        Sample,
+                                        levels = c(
+                                          "DF_01",
+                                          "DF_02",
+                                          "DF_03",
+                                          "DF_04",
+                                          "DF_05"
+                                        )
+                                      ),
+                                      Abundance_plot = log10(Abundance + 1)
+                                    )                                  
+                                  p_big2 <- p_big +
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund,
+                                      geom = geom_tile,
+                                      
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      
+                                      offset = 0.55,
+                                      pwidth = 0.09,
+                                      width = 0.88,
+                                      
+                                      axis.params = list(
+                                        axis = "x",
+                                        text.size = 4.0,
+                                        text.angle = 0,
+                                        hjust = 0.5,
+                                        vjust = 0.5
+                                      )
+                                    ) +
+                                    
+                                    scale_fill_gradientn(
+                                      colours = c(
+                                        "#FAF8F6",
+                                        "#EADCE8",
+                                        "#D9BEDD",
+                                        "#C995C5",
+                                        "#E8AD92",
+                                        "#F4D17F"
+                                      ),
+                                      name = expression(log[10](Abundance + 1))
+                                    )                                  
+                                  offset = 0.55                                  
+                                  pwidth = 0.09                                  
+                                  text.size = 4.0                                  
+                                  p_submission <- p_big2 +
+                                    theme(
+                                      legend.position = "right",
+                                      
+                                      legend.title = element_text(
+                                        size = 11,
+                                        face = "bold"
+                                      ),
+                                      
+                                      legend.text = element_text(
+                                        size = 10
+                                      ),
+                                      
+                                      legend.background = element_blank(),
+                                      legend.key = element_blank(),
+                                      
+                                      plot.margin = margin(
+                                        15, 20, 15, 15,
+                                        unit = "mm"
+                                      )
+                                    ) +
+                                    
+                                    guides(
+                                      fill = guide_colourbar(
+                                        title.position = "top",
+                                        title.hjust = 0.5,
+                                        barwidth = unit(5, "mm"),
+                                        barheight = unit(40, "mm"),
+                                        ticks = TRUE,
+                                        frame.colour = "grey50"
+                                      )
+                                    )                                  
+                                  windows(width = 19, height = 16)                                  
+                                  print(p_submission)                                  
+                                  ggsave(
+                                    "DFU_taxonomic_cladogram_FINAL.pdf",
+                                    plot = p_submission,
+                                    width = 240,
+                                    height = 200,
+                                    units = "mm",
+                                    device = cairo_pdf,
+                                    bg = "white"
+                                  )
+                                  ggsave(
+                                    "DFU_taxonomic_cladogram_FINAL_600dpi.tiff",
+                                    plot = p_submission,
+                                    width = 240,
+                                    height = 200,
+                                    units = "mm",
+                                    dpi = 600,
+                                    compression = "lzw",
+                                    bg = "white"
+                                  )                                  
+                                  p_outer <- p_big +
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund,
+                                      geom = geom_tile,
+                                      
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      
+                                      # more separation from organism names
+                                      offset = 0.35,
+                                      
+                                      # MUCH thicker outer abundance region
+                                      pwidth = 0.22,
+                                      
+                                      width = 0.95,
+                                      
+                                      # REMOVE the tiny overlapping DF labels
+                                      axis.params = NULL
+                                    ) +
+                                    
+                                    scale_fill_gradientn(
+                                      colours = c(
+                                        "#FAF7F5",
+                                        "#E9DDEB",
+                                        "#D9BFDD",
+                                        "#C995C4",
+                                        "#E5AA91",
+                                        "#F3CE7D"
+                                      ),
+                                      name = expression(log[10](Abundance + 1))
+                                    )
+                                  axis.params = NULL                                  
+                                  fan_abund_plot <- fan_abund %>%
+                                    dplyr::select(
+                                      label,
+                                      Sample,
+                                      Abundance,
+                                      Abundance_plot
+                                    )                                  
+                                  head(fan_abund_plot)                                  
+                                  p_outer <- p_big +
+                                    ggnewscale::new_scale_fill() +
+                                    
+                                    ggtreeExtra::geom_fruit(
+                                      data = fan_abund_plot,
+                                      geom = geom_tile,
+                                      
+                                      mapping = aes(
+                                        y = label,
+                                        x = Sample,
+                                        fill = Abundance_plot
+                                      ),
+                                      
+                                      offset = 0.30,
+                                      pwidth = 0.24,
+                                      width = 0.95,
+                                      
+                                      axis.params = list(
+                                        axis = "none"
+                                      )
+                                    ) +
+                                    
+                                    scale_fill_gradientn(
+                                      colours = c(
+                                        "#FAF8F6",
+                                        "#E9DDEA",
+                                        "#D8BFDD",
+                                        "#C995C4",
+                                        "#E7AB91",
+                                        "#F3CF7E"
+                                      ),
+                                      name = expression(log[10](Abundance + 1))
+                                    )                                  
+                                  windows(width = 19, height = 16)                                  
+                                  print(p_outer)                                  
+                                  p_pubtree <- ggtree(
+                                    phy,
+                                    layout = "fan",
+                                    open.angle = 100,
+                                    linewidth = 0.42,
+                                    colour = "#262626"
+                                  ) %<+% tip_meta                                 
+                                  for (i in seq_len(nrow(phylum_nodes))) {
+                                    
+                                    ph <- as.character(phylum_nodes$Phylum[i])
+                                    nd <- phylum_nodes$node[i]
+                                    
+                                    if (!is.na(nd) && ph %in% names(pastel_phylum)) {
+                                      
+                                      p_pubtree <- p_pubtree +
+                                        ggtree::geom_hilight(
+                                          node = nd,
+                                          fill = pastel_phylum[[ph]],
+                                          alpha = 0.65,
+                                          extend = 0.06
+                                        )
+                                    }
+                                  }                                  
+                                  p_pubtree <- p_pubtree +
+                                    geom_tree(
+                                      linewidth = 0.42,
+                                      colour = "#262626"
+                                    )                                  
+                                  p_pubtree <- p_pubtree +
+                                    geom_tiplab2(
+                                      aes(label = Genus),
+                                      size = 2.8,
+                                      fontface = "italic",
+                                      colour = "#111111",
+                                      offset = 0.025,
+                                      align = FALSE
+                                    )                                  
+                                  fan_abund_plot <- fan_abund %>%
+                                    dplyr::select(
+                                      label,
+                                      Sample,
+                                      Abundance,
+                                      Abundance_plot
+                                    )                                  
+                                  fan_abund_plot$Sample <- factor(
+                                    fan_abund_plot$Sample,
+                                    levels = c(
+                                      "DF_01",
+                                      "DF_02",
+                                      "DF_03",
+                                      "DF_04",
+                                      "DF_05"

@@ -1,0 +1,350 @@
+tax$Genus <- stringr::str_extract(
+  tax$`#OTU ID`,
+  "g__[^;]+"
+)
+tax$Genus <- sub("^g__", "", tax$Genus)
+sort(unique(tax$Genus))
+genus_long <- tax %>%
+  dplyr::select(
+    Genus,
+    DF_01,
+    DF_02,
+    DF_03,
+    DF_04,
+    DF_05
+  ) %>%
+  tidyr::pivot_longer(
+    cols = starts_with("DF_"),
+    names_to = "Sample",
+    values_to = "Abundance"
+  )
+genus_long$Abundance <- as.numeric(genus_long$Abundance)
+genus_long$Genus[
+  is.na(genus_long$Genus) |
+    genus_long$Genus == ""
+] <- "Unclassified"
+genus_sum <- genus_long %>%
+  group_by(Sample, Genus) %>%
+  summarise(
+    Abundance = sum(Abundance, na.rm = TRUE),
+    .groups = "drop"
+  )
+genus_sum <- genus_sum %>%
+  group_by(Sample) %>%
+  mutate(
+    Relative = 100 * Abundance / sum(Abundance)
+  ) %>%
+  ungroup()
+top10_genus <- genus_sum %>%
+  filter(Genus != "Unclassified") %>%
+  group_by(Genus) %>%
+  summarise(
+    Total = sum(Abundance),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Total)) %>%
+  slice_head(n = 10) %>%
+  pull(Genus)
+top10_genus
+genus_plot <- genus_sum %>%
+  mutate(
+    Genus_plot = ifelse(
+      Genus %in% top10_genus,
+      Genus,
+      "Other"
+    )
+  ) %>%
+  group_by(Sample, Genus_plot) %>%
+  summarise(
+    Relative = sum(Relative, na.rm = TRUE),
+    .groups = "drop"
+  )
+genus_plot$Sample <- factor(
+  genus_plot$Sample,
+  levels = c(
+    "DF_01",
+    "DF_02",
+    "DF_03",
+    "DF_04",
+    "DF_05"
+  )
+)
+genus_names <- unique(genus_plot$Genus_plot)
+genus_palette <- c(
+  "#2B6CA3",
+  "#43AAA4",
+  "#F6D55C",
+  "#F05A40",
+  "#8E44AD",
+  "#5DA5DA",
+  "#58CF87",
+  "#F5B041",
+  "#A569BD",
+  "#566573",
+  "#D35400"
+)
+genus_cols <- setNames(
+  genus_palette[seq_along(genus_names)],
+  genus_names
+)
+pGenusA <- ggplot(
+  genus_plot,
+  aes(
+    x = Sample,
+    y = Relative,
+    fill = Genus_plot
+  )
+)
+pGenusA <- pGenusA + geom_col(
+  width = 0.78,
+  colour = "white",
+  linewidth = 0.2
+)
+pGenusA <- pGenusA + scale_fill_manual(
+  values = genus_cols,
+  name = NULL
+)
+pGenusA <- pGenusA + scale_y_continuous(
+  limits = c(0, 100),
+  breaks = seq(0, 100, 20),
+  labels = function(x) paste0(x, "%"),
+  expand = c(0, 0)
+)
+pGenusA <- pGenusA + labs(
+  title = "Top genera across DFU samples",
+  x = NULL,
+  y = "Relative abundance (%)"
+)
+pGenusA <- pGenusA + theme_classic(base_size = 9) +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 10
+    ),
+    axis.text = element_text(
+      size = 8,
+      colour = "black"
+    ),
+    axis.title = element_text(size = 9),
+    legend.position = "right",
+    legend.text = element_text(size = 6.5),
+    legend.key.height = grid::unit(0.3, "cm")
+  )
+pGenusA
+genus_rank <- genus_sum %>%
+  filter(Genus != "Unclassified") %>%
+  group_by(Genus) %>%
+  summarise(
+    TotalRelative = sum(Relative),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(TotalRelative)) %>%
+  slice_head(n = 15)
+genus_rank$Genus <- factor(
+  genus_rank$Genus,
+  levels = rev(genus_rank$Genus)
+)
+pGenusB <- ggplot(
+  genus_rank,
+  aes(
+    x = TotalRelative,
+    y = Genus
+  )
+)
+pGenusB <- pGenusB + geom_col(
+  width = 0.72,
+  fill = "#2B6CA3"
+)
+pGenusB <- pGenusB + labs(
+  title = "Major genera ranked by total abundance",
+  x = "Summed relative abundance across samples (%)",
+  y = NULL
+)
+pGenusB <- pGenusB + theme_classic(base_size = 9) +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 10
+    ),
+    axis.text = element_text(
+      size = 7.5,
+      colour = "black"
+    ),
+    axis.title.x = element_text(size = 8.5)
+  )
+pGenusB
+dominant_genus <- genus_sum %>%
+  filter(Genus != "Unclassified") %>%
+  group_by(Sample) %>%
+  slice_max(
+    Relative,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup()
+dominant_genus
+dominant_genus$Sample <- factor(
+  dominant_genus$Sample,
+  levels = c(
+    "DF_01",
+    "DF_02",
+    "DF_03",
+    "DF_04",
+    "DF_05"
+  )
+)
+pGenusC <- ggplot(
+  dominant_genus,
+  aes(
+    x = Relative,
+    y = Sample
+  )
+)
+pGenusC <- pGenusC + geom_point(
+  aes(size = Relative),
+  shape = 21,
+  fill = "#F26B55",
+  colour = "white",
+  stroke = 0.8,
+  alpha = 0.95
+)
+pGenusC <- pGenusC + ggrepel::geom_text_repel(
+  aes(label = Genus),
+  size = 3,
+  direction = "x",
+  box.padding = 0.3,
+  point.padding = 0.4,
+  segment.color = NA,
+  show.legend = FALSE
+)
+pGenusC <- pGenusC + scale_size_continuous(
+  range = c(5, 11),
+  guide = "none"
+)
+pGenusC <- pGenusC + labs(
+  title = "Dominant genus per sample",
+  x = "Relative abundance (%)",
+  y = NULL
+)
+pGenusC <- pGenusC + theme_classic(base_size = 9) +
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 10
+    ),
+    axis.text = element_text(
+      size = 8,
+      colour = "black"
+    ),
+    axis.title.x = element_text(size = 8.5)
+  )
+pGenusC
+library(patchwork)
+Figure6 <- pGenusA | (pGenusB / pGenusC)
+Figure6 <- Figure6 +
+  plot_layout(
+    widths = c(1.15, 1)
+  ) +
+  plot_annotation(
+    tag_levels = "A"
+  )
+Figure6 <- Figure6 &
+  theme(
+    plot.tag = element_text(
+      face = "bold",
+      size = 11
+    )
+  )
+Figure6
+pGenusC <- ggplot(
+  dominant_genus,
+  aes(x = Relative, y = Sample)
+)
+pGenusC <- pGenusC + geom_point(
+  aes(size = Relative),
+  shape = 21,
+  fill = "#F26B55",
+  colour = "white",
+  stroke = 0.5,
+  alpha = 0.95
+)
+pGenusC <- pGenusC + scale_size_continuous(
+  range = c(3.5, 7),
+  guide = "none"
+)
+pGenusC <- pGenusC + ggrepel::geom_text_repel(
+  aes(label = Genus),
+  size = 2.3,
+  colour = "black",
+  box.padding = 0.25,
+  point.padding = 0.30,
+  min.segment.length = 0,
+  segment.color = "grey65",
+  segment.linewidth = 0.25,
+  max.overlaps = Inf,
+  seed = 123,
+  show.legend = FALSE
+)
+pGenusC <- pGenusC + scale_x_continuous(
+  limits = c(0, 125),
+  breaks = seq(0, 100, 20),
+  expand = c(0, 0)
+)
+pGenusC <- pGenusC + coord_cartesian(
+  clip = "off"
+)
+pGenusC <- pGenusC + labs(
+  title = "Dominant genus per sample",
+  x = "Relative abundance (%)",
+  y = NULL
+)
+pGenusC <- pGenusC + theme_classic(base_size = 8)
+pGenusC <- pGenusC + theme(
+  plot.title = element_text(
+    face = "bold",
+    size = 8.5,
+    hjust = 0
+  ),
+  axis.title.x = element_text(
+    size = 7.5,
+    face = "plain"
+  ),
+  axis.text.x = element_text(
+    size = 6.5,
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 7,
+    colour = "black"
+  ),
+  axis.line = element_line(
+    linewidth = 0.35,
+    colour = "black"
+  ),
+  axis.ticks = element_line(
+    linewidth = 0.3
+  ),
+  plot.margin = margin(
+    t = 5,
+    r = 25,
+    b = 5,
+    l = 5
+  )
+)
+pGenusC
+Figure6 <- pGenusA | (pGenusB / pGenusC)
+Figure6 <- Figure6 +
+  plot_layout(
+    widths = c(1, 1.35)
+  ) +
+  plot_annotation(
+    tag_levels = "A"
+  )
+Figure6 <- Figure6 &
+  theme(
+    plot.tag = element_text(
+      face = "bold",
+      size = 9
+    )
+  )
+Figure6

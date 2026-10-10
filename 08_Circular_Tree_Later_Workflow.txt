@@ -1,0 +1,915 @@
+  "PDF:  DFU_Circular_Cladogram_FINAL_Vector.pdf\n"
+)
+# ============================================================
+# DFU 16S CIRCULAR TAXONOMIC CLADOGRAM
+# Phylum sectors + Genus labels + 5-sample abundance tracks
+# ============================================================
+
+
+# ------------------------------------------------------------
+# 1. LOAD PACKAGES
+# ------------------------------------------------------------
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ape)
+library(igraph)
+library(ggplot2)
+library(ggtree)
+library(treeio)
+library(ggtreeExtra)
+library(ggnewscale)
+
+
+# Times New Roman for Windows
+windowsFonts(
+  TimesNewRoman = windowsFont("Times New Roman")
+)
+
+
+# ------------------------------------------------------------
+# 2. IMPORT DATA
+# ------------------------------------------------------------
+
+# Select raw_microbiome.xlsx(1).xlsx
+file_path <- file.choose()
+
+micro <- readxl::read_excel(file_path)
+
+# Check columns
+print(colnames(micro))
+
+
+# ------------------------------------------------------------
+# 3. EXTRACT TAXONOMIC RANKS
+# ------------------------------------------------------------
+
+tax_tree <- micro
+
+tax_tree$Phylum <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "p__[^;]+"
+)
+
+tax_tree$Class <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "c__[^;]+"
+)
+
+tax_tree$Order <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "o__[^;]+"
+)
+
+tax_tree$Family <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "f__[^;]+"
+)
+
+tax_tree$Genus <- stringr::str_extract(
+  tax_tree$`#OTU ID`,
+  "g__[^;]+"
+)
+
+
+# Remove prefixes
+
+tax_tree$Phylum <- sub("^p__", "", tax_tree$Phylum)
+tax_tree$Class  <- sub("^c__", "", tax_tree$Class)
+tax_tree$Order  <- sub("^o__", "", tax_tree$Order)
+tax_tree$Family <- sub("^f__", "", tax_tree$Family)
+tax_tree$Genus  <- sub("^g__", "", tax_tree$Genus)
+
+
+# ------------------------------------------------------------
+# 4. PREPARE TAXONOMIC HIERARCHY
+# ------------------------------------------------------------
+
+tree_tax <- tax_tree %>%
+  dplyr::select(
+    Phylum,
+    Class,
+    Order,
+    Family,
+    Genus
+  ) %>%
+  dplyr::filter(
+    !is.na(Phylum),
+    !is.na(Genus),
+    Genus != ""
+  ) %>%
+  dplyr::distinct()
+
+
+# Fill missing intermediate ranks
+
+tree_tax <- tree_tax %>%
+  dplyr::mutate(
+    
+    Class = ifelse(
+      is.na(Class) | Class == "",
+      "Unclassified_class",
+      Class
+    ),
+    
+    Order = ifelse(
+      is.na(Order) | Order == "",
+      "Unclassified_order",
+      Order
+    ),
+    
+    Family = ifelse(
+      is.na(Family) | Family == "",
+      "Unclassified_family",
+      Family
+    )
+  )
+
+
+# ------------------------------------------------------------
+# 5. CREATE UNIQUE TAXONOMIC NODE IDs
+# ------------------------------------------------------------
+
+tree_tax <- tree_tax %>%
+  dplyr::mutate(
+    
+    P = paste0(
+      "P:", Phylum
+    ),
+    
+    C = paste0(
+      "C:", Phylum, "|", Class
+    ),
+    
+    O = paste0(
+      "O:", Phylum, "|", Class, "|", Order
+    ),
+    
+    F = paste0(
+      "F:", Phylum, "|", Class, "|", Order, "|", Family
+    ),
+    
+    G = paste0(
+      "G:", Phylum, "|", Class, "|",
+      Order, "|", Family, "|", Genus
+    )
+  )
+
+
+# ------------------------------------------------------------
+# 6. CREATE TREE EDGES
+# ------------------------------------------------------------
+
+tree_edges <- dplyr::bind_rows(
+  
+  tree_tax %>%
+    dplyr::distinct(P, C) %>%
+    dplyr::transmute(
+      from = P,
+      to = C
+    ),
+  
+  tree_tax %>%
+    dplyr::distinct(C, O) %>%
+    dplyr::transmute(
+      from = C,
+      to = O
+    ),
+  
+  tree_tax %>%
+    dplyr::distinct(O, F) %>%
+    dplyr::transmute(
+      from = O,
+      to = F
+    ),
+  
+  tree_tax %>%
+    dplyr::distinct(F, G) %>%
+    dplyr::transmute(
+      from = F,
+      to = G
+    )
+  
+) %>%
+  dplyr::distinct()
+
+
+# Add central root
+
+root_edges <- data.frame(
+  from = "DFU_16S",
+  to = unique(tree_tax$P)
+)
+
+tree_edges <- dplyr::bind_rows(
+  root_edges,
+  tree_edges
+)
+
+
+# ------------------------------------------------------------
+# 7. CREATE SIMPLE TIP IDs
+# ------------------------------------------------------------
+
+tip_map <- tree_tax %>%
+  dplyr::distinct(
+    G,
+    Genus,
+    Phylum
+  ) %>%
+  dplyr::mutate(
+    tip_id = paste0(
+      "tip_",
+      sprintf(
+        "%03d",
+        dplyr::row_number()
+      )
+    )
+  )
+
+
+tip_meta <- tip_map %>%
+  dplyr::transmute(
+    label = tip_id,
+    Genus = Genus,
+    Phylum = Phylum
+  )
+
+
+# ------------------------------------------------------------
+# 8. CONVERT TAXONOMIC HIERARCHY TO NEWICK TREE
+# ------------------------------------------------------------
+
+children <- split(
+  tree_edges$to,
+  tree_edges$from
+)
+
+tip_lookup <- setNames(
+  tip_map$tip_id,
+  tip_map$G
+)
+
+
+make_newick <- function(node) {
+  
+  kids <- children[[node]]
+  
+  if (is.null(kids) || length(kids) == 0) {
+    
+    id <- unname(
+      tip_lookup[node]
+    )
+    
+    if (
+      length(id) == 0 ||
+      is.na(id)
+    ) {
+      
+      stop(
+        paste(
+          "Terminal node not found:",
+          node
+        )
+      )
+    }
+    
+    return(id)
+  }
+  
+  child_text <- vapply(
+    kids,
+    make_newick,
+    character(1)
+  )
+  
+  paste0(
+    "(",
+    paste(
+      child_text,
+      collapse = ","
+    ),
+    ")"
+  )
+}
+
+
+newick_text <- paste0(
+  make_newick("DFU_16S"),
+  ";"
+)
+
+
+phy <- ape::read.tree(
+  text = newick_text
+)
+
+
+cat(
+  "Number of tree tips:",
+  ape::Ntip(phy),
+  "\n"
+)
+
+cat(
+  "Number of metadata rows:",
+  nrow(tip_meta),
+  "\n"
+)
+
+
+# ------------------------------------------------------------
+# 9. FIND THE NODE REPRESENTING EACH PHYLUM
+# ------------------------------------------------------------
+
+phylum_nodes <- tip_meta %>%
+  dplyr::group_by(Phylum) %>%
+  dplyr::summarise(
+    
+    node = if (dplyr::n() == 1) {
+      
+      match(
+        label[1],
+        phy$tip.label
+      )
+      
+    } else {
+      
+      ape::getMRCA(
+        phy,
+        label
+      )
+    },
+    
+    .groups = "drop"
+  )
+
+
+print(phylum_nodes)
+
+
+# ------------------------------------------------------------
+# 10. PHYLUM COLORS
+# ------------------------------------------------------------
+
+vibrant_phylum <- c(
+  
+  "Actinobacteriota" = "#E76F73",
+  
+  "Bacteroidota" =
+    "#59B87A",
+  
+  "Firmicutes" =
+    "#7C83C9",
+  
+  "Fusobacteriota" =
+    "#E5B73B",
+  
+  "Proteobacteria" =
+    "#4FA3C7"
+)
+
+
+# ------------------------------------------------------------
+# 11. BASE CIRCULAR TAXONOMIC CLADOGRAM
+# ------------------------------------------------------------
+
+p_tree <- ggtree::ggtree(
+  
+  phy,
+  
+  layout = "fan",
+  
+  # Small opening on right side
+  open.angle = 25,
+  
+  linewidth = 0.50,
+  
+  colour = "black"
+  
+) %<+% tip_meta
+
+
+# ------------------------------------------------------------
+# 12. ADD COLORED PHYLUM SECTORS
+# ------------------------------------------------------------
+
+for (i in seq_len(nrow(phylum_nodes))) {
+  
+  ph <- as.character(
+    phylum_nodes$Phylum[i]
+  )
+  
+  nd <- phylum_nodes$node[i]
+  
+  if (
+    !is.na(nd) &&
+    ph %in% names(vibrant_phylum)
+  ) {
+    
+    p_tree <- p_tree +
+      
+      ggtree::geom_hilight(
+        
+        node = nd,
+        
+        fill =
+          vibrant_phylum[[ph]],
+        
+        alpha = 0.38,
+        
+        extend = 0.12
+      )
+  }
+}
+
+
+# Redraw tree branches over the colored sectors
+
+p_tree <- p_tree +
+  
+  ggtree::geom_tree(
+    linewidth = 0.48,
+    colour = "black"
+  )
+
+
+# ------------------------------------------------------------
+# 13. PREPARE GENUS ABUNDANCE
+# ------------------------------------------------------------
+
+genus_abund <- micro %>%
+  
+  dplyr::mutate(
+    
+    Genus = stringr::str_extract(
+      `#OTU ID`,
+      "g__[^;]+"
+    ),
+    
+    Genus = sub(
+      "^g__",
+      "",
+      Genus
+    )
+  ) %>%
+  
+  dplyr::filter(
+    !is.na(Genus),
+    Genus != ""
+  ) %>%
+  
+  dplyr::select(
+    Genus,
+    DF_01,
+    DF_02,
+    DF_03,
+    DF_04,
+    DF_05
+  ) %>%
+  
+  dplyr::group_by(Genus) %>%
+  
+  dplyr::summarise(
+    
+    dplyr::across(
+      
+      c(
+        DF_01,
+        DF_02,
+        DF_03,
+        DF_04,
+        DF_05
+      ),
+      
+      ~sum(
+        as.numeric(.x),
+        na.rm = TRUE
+      )
+    ),
+    
+    .groups = "drop"
+  )
+
+
+# ------------------------------------------------------------
+# 14. CONVERT ABUNDANCE TO LONG FORMAT
+# ------------------------------------------------------------
+
+fan_abund <- genus_abund %>%
+  
+  dplyr::inner_join(
+    
+    tip_map %>%
+      dplyr::select(
+        tip_id,
+        Genus
+      ),
+    
+    by = "Genus"
+  ) %>%
+  
+  tidyr::pivot_longer(
+    
+    cols = c(
+      DF_01,
+      DF_02,
+      DF_03,
+      DF_04,
+      DF_05
+    ),
+    
+    names_to = "Sample",
+    
+    values_to = "Abundance"
+  ) %>%
+  
+  dplyr::rename(
+    label = tip_id
+  )
+
+
+# Sample order
+
+fan_abund$Sample <- factor(
+  
+  fan_abund$Sample,
+  
+  levels = c(
+    "DF_01",
+    "DF_02",
+    "DF_03",
+    "DF_04",
+    "DF_05"
+  )
+)
+
+
+# Log transform only for visualization
+
+fan_abund$Abundance_plot <-
+  log10(
+    fan_abund$Abundance + 1
+  )
+
+
+fan_abund_plot <- fan_abund %>%
+  
+  dplyr::select(
+    label,
+    Sample,
+    Abundance,
+    Abundance_plot
+  )
+
+
+# ------------------------------------------------------------
+# 15. GET GENUS LABEL POSITIONS
+# ------------------------------------------------------------
+
+tip_pos <- p_tree$data %>%
+  
+  dplyr::filter(isTip) %>%
+  
+  dplyr::select(
+    label,
+    x,
+    y,
+    angle
+  ) %>%
+  
+  dplyr::left_join(
+    
+    tip_meta %>%
+      dplyr::select(
+        label,
+        Genus,
+        Phylum
+      ),
+    
+    by = "label"
+  )
+
+
+# ------------------------------------------------------------
+# 16. MOVE GENUS LABELS INSIDE THE CIRCLE
+# ------------------------------------------------------------
+
+label_radius <-
+  max(
+    tip_pos$x,
+    na.rm = TRUE
+  ) * 0.87
+
+
+tip_pos <- tip_pos %>%
+  
+  dplyr::mutate(
+    
+    label_x =
+      label_radius,
+    
+    label_angle =
+      angle,
+    
+    label_hjust =
+      dplyr::if_else(
+        
+        label_angle > 90 &
+          label_angle < 270,
+        
+        1,
+        
+        0
+      ),
+    
+    label_angle =
+      dplyr::if_else(
+        
+        label_angle > 90 &
+          label_angle < 270,
+        
+        label_angle + 180,
+        
+        label_angle
+      )
+  )
+
+
+# ------------------------------------------------------------
+# 17. DETERMINE WHICH LABELS SHOULD BE ITALIC
+# ------------------------------------------------------------
+
+tip_pos <- tip_pos %>%
+  
+  dplyr::mutate(
+    
+    italic_label = !grepl(
+      
+      paste(
+        "group",
+        "uncultured",
+        "unclassified",
+        "unknown",
+        "norank",
+        "metagenome",
+        "^[0-9]",
+        "DNF",
+        sep = "|"
+      ),
+      
+      Genus,
+      
+      ignore.case = TRUE
+    )
+  )
+
+
+# ------------------------------------------------------------
+# 18. ADD SMALL, CLEAR GENUS LABELS
+# ------------------------------------------------------------
+
+p_labels <- p_tree +
+  
+  # Non-italic labels
+  ggplot2::geom_text(
+    
+    data =
+      dplyr::filter(
+        tip_pos,
+        !italic_label
+      ),
+    
+    mapping =
+      ggplot2::aes(
+        x = label_x,
+        y = y,
+        label = Genus,
+        angle = label_angle,
+        hjust = label_hjust
+      ),
+    
+    inherit.aes = FALSE,
+    
+    family = "TimesNewRoman",
+    
+    fontface = "plain",
+    
+    size = 2.0,
+    
+    colour = "black"
+  ) +
+  
+  # Genus names
+  ggplot2::geom_text(
+    
+    data =
+      dplyr::filter(
+        tip_pos,
+        italic_label
+      ),
+    
+    mapping =
+      ggplot2::aes(
+        x = label_x,
+        y = y,
+        label = Genus,
+        angle = label_angle,
+        hjust = label_hjust
+      ),
+    
+    inherit.aes = FALSE,
+    
+    family = "TimesNewRoman",
+    
+    fontface = "italic",
+    
+    size = 2.0,
+    
+    colour = "black"
+  )
+
+
+# ------------------------------------------------------------
+# 19. ADD OUTER ABUNDANCE TRACKS
+# ------------------------------------------------------------
+
+p_final <- p_labels +
+  
+  ggnewscale::new_scale_fill() +
+  
+  ggtreeExtra::geom_fruit(
+    
+    data =
+      fan_abund_plot,
+    
+    geom =
+      geom_tile,
+    
+    mapping =
+      ggplot2::aes(
+        
+        y = label,
+        
+        x = Sample,
+        
+        fill =
+          Abundance_plot
+      ),
+    
+    # Keep heatmap close to organism labels
+    offset = 0.16,
+    
+    # Width of five-track compartment
+    pwidth = 0.30,
+    
+    width = 0.96,
+    
+    colour = "white",
+    
+    linewidth = 0.18,
+    
+    axis.params =
+      list(
+        axis = "none"
+      )
+  ) +
+  
+  ggplot2::scale_fill_gradientn(
+    
+    colours = c(
+      "#FFF7EC",
+      "#FDD49E",
+      "#FC8D59",
+      "#EF6548",
+      "#B30000"
+    ),
+    
+    name =
+      expression(
+        log[10](Abundance + 1)
+      )
+  )
+
+
+# ------------------------------------------------------------
+# 20. FINAL FIGURE FORMATTING
+# ------------------------------------------------------------
+
+p_final <- p_final +
+  
+  ggplot2::theme(
+    
+    legend.position = "right",
+    
+    legend.box.spacing =
+      grid::unit(
+        2,
+        "mm"
+      ),
+    
+    legend.title =
+      ggplot2::element_text(
+        
+        family =
+          "TimesNewRoman",
+        
+        face =
+          "plain",
+        
+        size = 8,
+        
+        colour =
+          "black"
+      ),
+    
+    legend.text =
+      ggplot2::element_text(
+        
+        family =
+          "TimesNewRoman",
+        
+        size = 7,
+        
+        colour =
+          "black"
+      ),
+    
+    plot.margin =
+      ggplot2::margin(
+        3,
+        3,
+        3,
+        3,
+        unit = "mm"
+      )
+  )
+
+
+# ------------------------------------------------------------
+# 21. PREVIEW
+# ------------------------------------------------------------
+
+windows(
+  width = 16,
+  height = 15
+)
+
+print(p_final)
+
+
+# ------------------------------------------------------------
+# 22. EXPORT 1200-DPI TIFF
+# ------------------------------------------------------------
+
+ggplot2::ggsave(
+  
+  filename =
+    "DFU_Circular_Cladogram_FINAL_1200dpi.tiff",
+  
+  plot =
+    p_final,
+  
+  width = 220,
+  
+  height = 210,
+  
+  units = "mm",
+  
+  dpi = 1200,
+  
+  compression = "lzw",
+  
+  bg = "white"
+)
+
+
+# ------------------------------------------------------------
+# 23. EXPORT VECTOR PDF
+# ------------------------------------------------------------
+
+ggplot2::ggsave(
+  
+  filename =
+    "DFU_Circular_Cladogram_FINAL_Vector.pdf",
+  
+  plot =
+    p_final,
+  
+  width = 220,
+  
+  height = 210,
+  
+  units = "mm",
+  
+  device = cairo_pdf,
+  
+  bg = "white"
+)
+
+
+# ------------------------------------------------------------
+# FINISHED
+# ------------------------------------------------------------
